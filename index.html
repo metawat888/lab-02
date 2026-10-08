@@ -12,18 +12,14 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f8ff 0%, #e0f2fe 100%); /* ธีมฟ้า-ขาวสว่าง */
+            background: linear-gradient(135deg, #f0f8ff 0%, #e0f2fe 100%);
             margin: 0;
             overflow: hidden; 
-            color: #0f172a; /* ข้อความสีเข้ม */
+            color: #0f172a;
         }
         
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
             background: rgba(148, 163, 184, 0.5);
             border-radius: 10px;
@@ -78,7 +74,6 @@
             50% { opacity: .7; transform: scale(1.2); box-shadow: 0 0 10px 3px rgba(34, 197, 94, 0); }
         }
 
-        /* เพิ่มคลาสสำหรับซ่อน Scrollbar แต่ยังเลื่อนได้ */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -89,8 +84,7 @@
 
     <div class="absolute inset-0 z-10 p-3 md:p-5 flex flex-col justify-between pointer-events-none h-full">
         
-        <!-- โซนด้านบน: Header + Data Panel -->
-        <div class="w-full flex flex-col gap-3 relative z-50 pointer-events-none max-w-6xl mx-auto">
+        <div class="w-full flex flex-col gap-3 relative z-50 pointer-events-none max-w-7xl mx-auto">
             
             <!-- TOP HEADER -->
             <header class="glass-panel rounded-2xl p-3 flex flex-col md:flex-row justify-between items-center pointer-events-auto gap-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
@@ -107,13 +101,12 @@
                         </div>
                     </div>
                     
-                    <!-- Mobile Toggle Button -->
                     <button id="btn-toggle-mobile" class="md:hidden bg-blue-50 text-blue-700 px-3 py-2 rounded-xl text-xs font-bold border border-blue-200 active:bg-blue-100 shadow-sm flex items-center gap-2">
                         <i class="fa-solid fa-chart-pie"></i> ข้อมูล
                     </button>
                 </div>
                 
-                <div class="relative w-full md:flex-1 md:max-w-lg mx-auto">
+                <div class="relative w-full md:flex-1 md:max-w-xl mx-auto">
                     <select id="sample-selector" class="w-full bg-white/90 backdrop-blur-md border border-slate-300 text-slate-800 text-[11px] md:text-sm font-bold rounded-xl focus:ring-blue-500 focus:border-blue-500 block pl-4 pr-8 py-2.5 outline-none transition-all hover:border-blue-400 cursor-pointer appearance-none shadow-sm">
                         <option value="hbb_normal">1. โครงสร้าง DNA ปกติ (ยีน HBB อ้างอิง)</option>
                         <option value="hbb_sickle">2. โรคโลหิตจางเม็ดเลือดแดงรูปเคียว (HBB)</option>
@@ -145,7 +138,6 @@
                     </div>
                 </div>
 
-                <!-- Desktop Toggle Button -->
                 <div class="hidden md:flex items-center gap-4 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></div>
@@ -158,9 +150,8 @@
                 </div>
             </header>
 
-            <!-- DATA PANEL (กล่องข้อมูลด้านบน) -->
             <div id="data-panel" class="pointer-events-auto transition-all duration-300 origin-top opacity-100 transform scale-y-100 max-h-[60vh] overflow-y-auto hide-scroll">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
                     
                     <!-- 1. รายละเอียด -->
                     <div class="glass-card rounded-xl p-4 border-blue-200 bg-white/90 lg:col-span-2 shadow-sm flex flex-col justify-center min-h-[90px]">
@@ -180,42 +171,53 @@
                         </div>
                     </div>
 
-                    <!-- 3. จุดกลายพันธุ์ -->
-                    <div id="mutation-card" class="glass-card rounded-xl p-3 md:p-4 border-red-200 bg-red-50/95 hidden transition-all shadow-md flex-col justify-between min-h-[90px]">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-[10px] md:text-[11px] font-bold text-red-600 uppercase tracking-wider"><i class="fa-solid fa-crosshairs mr-1 animate-pulse"></i> จุดกลายพันธุ์</span>
-                            <span id="mut-position" class="bg-white text-red-600 border border-red-200 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">...</span>
-                        </div>
-                        <div class="flex items-center justify-around bg-white/80 rounded-lg p-1.5 border border-red-100 mt-auto">
-                            <div class="text-center">
-                                <div class="text-[8px] font-bold text-slate-500 uppercase">ปกติ</div>
-                                <div id="mut-normal" class="text-base font-black text-emerald-500">A</div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right-long text-red-500 text-sm animate-pulse"></i>
-                            <div class="text-center">
-                                <div class="text-[8px] font-bold text-slate-500 uppercase">พบจริง</div>
-                                <div id="mut-mutated" class="text-base font-black text-red-500">T</div>
-                            </div>
+                    <!-- 3. Base Composition (Added) -->
+                    <div class="glass-card rounded-xl p-3 md:p-4 shadow-sm flex flex-col justify-center min-h-[90px] bg-white/90">
+                        <span class="text-[10px] md:text-[11px] font-bold text-slate-700 uppercase mb-2"><i class="fa-solid fa-chart-simple text-blue-500 mr-1"></i> องค์ประกอบเบส</span>
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[9px] font-mono">
+                            <div><div class="flex justify-between"><span class="text-red-500 font-bold">A</span> <span id="val-a" class="text-slate-600 font-bold">0%</span></div><div class="w-full bg-slate-200 h-1 mt-0.5 rounded-full overflow-hidden"><div id="bar-a" class="bg-red-500 h-full rounded-full transition-all duration-500"></div></div></div>
+                            <div><div class="flex justify-between"><span class="text-blue-500 font-bold">T</span> <span id="val-t" class="text-slate-600 font-bold">0%</span></div><div class="w-full bg-slate-200 h-1 mt-0.5 rounded-full overflow-hidden"><div id="bar-t" class="bg-blue-500 h-full rounded-full transition-all duration-500"></div></div></div>
+                            <div><div class="flex justify-between"><span class="text-emerald-500 font-bold">C</span> <span id="val-c" class="text-slate-600 font-bold">0%</span></div><div class="w-full bg-slate-200 h-1 mt-0.5 rounded-full overflow-hidden"><div id="bar-c" class="bg-emerald-500 h-full rounded-full transition-all duration-500"></div></div></div>
+                            <div><div class="flex justify-between"><span class="text-amber-500 font-bold">G</span> <span id="val-g" class="text-slate-600 font-bold">0%</span></div><div class="w-full bg-slate-200 h-1 mt-0.5 rounded-full overflow-hidden"><div id="bar-g" class="bg-amber-500 h-full rounded-full transition-all duration-500"></div></div></div>
                         </div>
                     </div>
 
-                    <!-- 4. ความสมบูรณ์ (จะแสดงแทนช่องที่ 4 หากไม่มีช่องกลายพันธุ์) -->
-                    <div id="integrity-card" class="glass-card rounded-xl p-3 md:p-4 shadow-sm flex flex-col justify-center min-h-[90px] bg-white/90">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-[10px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">ความสมบูรณ์</span>
-                            <i id="integrity-icon" class="fa-solid fa-shield-halved text-emerald-500"></i>
+                    <!-- 4. จุดกลายพันธุ์ / ความสมบูรณ์ -->
+                    <div class="relative min-h-[90px]">
+                        <div id="mutation-card" class="absolute inset-0 glass-card rounded-xl p-3 md:p-4 border-red-200 bg-red-50/95 hidden transition-all shadow-md flex-col justify-between z-10">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] md:text-[11px] font-bold text-red-600 uppercase tracking-wider"><i class="fa-solid fa-crosshairs mr-1 animate-pulse"></i> จุดกลายพันธุ์</span>
+                                <span id="mut-position" class="bg-white text-red-600 border border-red-200 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">...</span>
+                            </div>
+                            <div class="flex items-center justify-around bg-white/80 rounded-lg p-1.5 border border-red-100 mt-auto">
+                                <div class="text-center">
+                                    <div class="text-[8px] font-bold text-slate-500 uppercase">ปกติ</div>
+                                    <div id="mut-normal" class="text-base font-black text-emerald-500">A</div>
+                                </div>
+                                <i class="fa-solid fa-arrow-right-long text-red-500 text-sm animate-pulse"></i>
+                                <div class="text-center">
+                                    <div class="text-[8px] font-bold text-slate-500 uppercase">พบจริง</div>
+                                    <div id="mut-mutated" class="text-base font-black text-red-500">T</div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="integrity-score" class="text-xl md:text-2xl font-black text-slate-800 leading-none">100%</div>
-                        <div class="w-full bg-slate-200 h-1.5 rounded-full mt-3 overflow-hidden">
-                            <div id="integrity-bar" class="bg-gradient-to-r from-emerald-400 to-emerald-500 w-full h-full rounded-full transition-all duration-1000"></div>
+
+                        <div id="integrity-card" class="absolute inset-0 glass-card rounded-xl p-3 md:p-4 shadow-sm flex flex-col justify-center bg-white/90">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">ความสมบูรณ์</span>
+                                <i id="integrity-icon" class="fa-solid fa-shield-halved text-emerald-500"></i>
+                            </div>
+                            <div id="integrity-score" class="text-xl md:text-2xl font-black text-slate-800 leading-none">100%</div>
+                            <div class="w-full bg-slate-200 h-1.5 rounded-full mt-3 overflow-hidden">
+                                <div id="integrity-bar" class="bg-gradient-to-r from-emerald-400 to-emerald-500 w-full h-full rounded-full transition-all duration-1000"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Footer Ticker -->
-        <footer class="glass-panel rounded-2xl overflow-hidden pointer-events-auto flex items-center h-10 md:h-12 relative shrink-0 mt-auto max-w-6xl mx-auto w-full shadow-[0_-4px_20px_rgb(0,0,0,0.03)]">
+        <footer class="glass-panel rounded-2xl overflow-hidden pointer-events-auto flex items-center h-10 md:h-12 relative shrink-0 mt-auto max-w-7xl mx-auto w-full shadow-[0_-4px_20px_rgb(0,0,0,0.03)]">
             <div class="bg-blue-50/90 border-r border-blue-100 h-full px-3 md:px-5 flex items-center justify-center z-10 shrink-0 backdrop-blur-md">
                 <span class="text-blue-700 text-[9px] md:text-[10px] font-bold tracking-widest uppercase"><i class="fa-solid fa-satellite-dish mr-2 animate-pulse"></i> ลำดับพันธุกรรม</span>
             </div>
@@ -234,153 +236,32 @@
 
     <script>
         const genomicData = {
-            hbb_normal: {
-                id: "HBB-WT", integrity: 100,
-                desc: "ยีน HBB (Hemoglobin Beta) ลำดับเบสอ้างอิงจาก NCBI มีความสมบูรณ์ ถอดรหัสเป็นกรดกลูตามิก (Glu) ที่ตำแหน่ง 6 อย่างถูกต้อง",
-                seq: "ATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGTTGGTATCAAGGTTACAAGACAGGTTTAAGGAGACCAATAGAAACTGGGCATGTGGAGACAGAGAAG",
-                mutationIdx: -1, normalBase: null, mutatedBase: null, displayPos: ""
-            },
-            hbb_sickle: {
-                id: "HBB-SCA", integrity: 65,
-                desc: "โรคโลหิตจางเม็ดเลือดแดงรูปเคียว: พบการกลายพันธุ์ Point Mutation แบบ Transversion (A > T) ส่งผลให้กรดกลูตามิกเปลี่ยนเป็นวาลีน (Glu6Val)",
-                seq: "ATGGTGCACCTGACTCCTGTGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGTTGGTATCAAGGTTACAAGACAGGTTTAAGGAGACCAATAGAAACTGGGCATGTGGAGACAGAGAAG",
-                mutationIdx: 19, normalBase: "A", mutatedBase: "T", displayPos: "c.17A>T (rs334)"
-            },
-            braf_mut: {
-                id: "BRAF-V600E", integrity: 42,
-                desc: "มะเร็งเมลาโนมา: การกลายพันธุ์ที่ Exon 15 ของยีน BRAF (T > A) เปลี่ยนวาลีนเป็นกลูตามิก (Val600Glu) ทำให้ไคเนสทำงานตลอดเวลาโดยไม่อาศัยสัญญาณกระตุ้น",
-                seq: "TGTTTTCCTTTACTTACTACACCTCAGATATATTTCTTCATGAAGACCTCACAGTAAAAATAGGTGATTTTGGTCTAGCTACAGAGAAATCTCGATGGAGTGGGTCCCATCAGTTTGAACAGTTGTCTGGATCCATTTTGTGGATGGTAAGAATTGAGGC",
-                mutationIdx: 84, normalBase: "T", mutatedBase: "A", displayPos: "c.1799T>A"
-            },
-            cftr_mut: {
-                id: "CFTR-G551D", integrity: 78,
-                desc: "โรคซิสติกไฟโบรซิส: การกลายพันธุ์ที่ Exon 11 (G > A) เปลี่ยนไกลซีนเป็นกรดแอสปาร์ติก (Gly551Asp) ส่งผลให้ช่องผ่านคลอไรด์ที่ผิวเซลล์ไม่สามารถเปิดออกได้",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1652G>A"
-            },
-            fgfr3_mut: {
-                id: "FGFR3-G1138A", integrity: 85,
-                desc: "โรคกระดูกอ่อนเตี้ยแคระ (Achondroplasia): การกลายพันธุ์ที่ยีน FGFR3 (G > A) ส่งผลให้ตัวรับสัญญาณยับยั้งการเจริญเติบโตของกระดูกทำงานมากเกินไป",
-                seq: "CTGCCCCGCCGCCGGGCGTCCTCTACTTTCACCAGGCGGCCGACATGGTGAGTCTACACGGCCCGGGGCCCCGGGGGACGGGAGCAGTCCACCGACGGCGTGCCCGGGCGACGGGACCGACCGGGATCTCCCGGCGCCGCCGCCCCCCGCACCCGCAGGG",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1138G>A"
-            },
-            pah_mut: {
-                id: "PAH-R408W", integrity: 60,
-                desc: "โรคฟีนิลคีโตนูเรีย (PKU): การกลายพันธุ์ในยีน PAH (C > T) ทำให้เอนไซม์ Phenylalanine Hydroxylase เสียสภาพ ไม่สามารถย่อยกรดอะมิโนฟีนิลอะลานีนได้",
-                seq: "CCCATGGTTATGACCTTCGGGATGATTGTACAGGGGTACTTGATGTCCAGTAGGTGCTTGTAGTTGTGCTTTTTTCCGCCTTCTGGATTCTTCTCATCCAGCAAAATGGGCTTGGGAAAGGAGTTAATGATTTGTAGCCCTGTCAGTTGATTTTGAGCAA",
-                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.1222C>T"
-            },
-            hfe_mut: {
-                id: "HFE-C282Y", integrity: 72,
-                desc: "โรคภาวะธาตุเหล็กเกิน: ยีน HFE กลายพันธุ์ (G > A) เปลี่ยนซีสเทอีนเป็นไทโรซีน (Cys282Tyr) ทำให้โปรตีนไม่สามารถควบคุมการดูดซึมธาตุเหล็กในลำไส้ได้",
-                seq: "CCTCGCTGCGGTCCCTGCTGGTGACGTCCTCCTTATACTCTCCCAAAAGTACTCGGTGATATGCTGGTTCTACGTGCATGTGGAGCCGGGCGCGGAGCCCCTGCTGAAGACGTTCCACCACGCGCGTTCTTCACTACGAGTGCCCCATTCTTACATCCAA",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.845G>A"
-            },
-            nf1_mut: {
-                id: "NF1-R1947X", integrity: 55,
-                desc: "โรคท้าวแสนปม (NF1): การเกิดรหัสหยุดก่อนกำหนด (Nonsense Mutation: C > T) ทำให้โปรตีน Neurofibromin ขาดหายไป ส่งผลให้เซลล์ประสาทแบ่งตัวผิดปกติ",
-                seq: "TAAGTGGCTTTTGCACTTAGTGCTTCATTGTAAAAGAATGCCACAAGAAGTAAAGAATGTAGATCAGAAATATACTATTGGCACTTTACAACCAGGATATAGCATCAGTGGAATTAGATTAGCAAATGAACACAAGTCAAAAATTACATTTACAGTACAA",
-                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.5839C>T"
-            },
-            ldlr_mut: {
-                id: "LDLR-F208L", integrity: 68,
-                desc: "คอเลสเตอรอลสูงทางพันธุกรรม (FH): การกลายพันธุ์ที่ยีน LDLR (C > A) ทำให้ตัวรับไขมัน LDL บนผิวเซลล์ตับทำงานผิดปกติ คอเลสเตอรอลจึงสะสมในเลือดปริมาณมาก",
-                seq: "GTGCACGACTTCCACCGGCGCAGCCGGTGCGTGGAGCTGCCGGCACCCGTAGGCAACCACATGTGCTGCTCCCTACCGTGTAGCAACGAGTTCACCTCGATCTCCATGCCCTCGGCGCGCTGCGGCCGCCGGGACCCGCACGGCCACTACTCGCAGGTAA",
-                mutationIdx: 50, normalBase: "C", mutatedBase: "A", displayPos: "c.622C>A"
-            },
-            smn1_mut: {
-                id: "SMN1-C840T", integrity: 40,
-                desc: "โรคกล้ามเนื้ออ่อนแรง (SMA): การกลายพันธุ์แบบ Silent ที่ Exon 7 (C > T) ทำให้เกิดการข้ามเอ็กซอน (Exon Skipping) โปรตีน SMN จึงสั้นและสลายตัวเร็ว",
-                seq: "CTGGACTCCAGACCTCATGGAAGAACAGTATGTGTATAAATTAAGTAATATACAAATCCTATGGAGTTCACCTACAAGTATATGCAATATTGATTCAAAGCATATTGATGTCTCGTATTGGGAAAGAACACAGAACCAAAATGCAAAAGATGATTTAAAA",
-                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.840C>T"
-            },
-            fbn1_mut: {
-                id: "FBN1-C1663R", integrity: 75,
-                desc: "กลุ่มอาการมาร์ฟาน: การกลายพันธุ์ที่ยีน FBN1 (T > C) ทำลายโครงสร้างโปรตีนไฟบริลลิน-1 ทำให้เนื้อเยื่อเกี่ยวพันอ่อนแอ เสี่ยงต่อการฉีกขาดของหลอดเลือดแดงใหญ่",
-                seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG",
-                mutationIdx: 50, normalBase: "T", mutatedBase: "C", displayPos: "c.4987T>C"
-            },
-            f8_mut: {
-                id: "F8-R1941X", integrity: 65,
-                desc: "โรคฮีโมฟีเลีย เอ: ยีน F8 บนโครโมโซม X เกิดการสร้างรหัสหยุดก่อนกำหนด (C > T) ทำให้ร่างกายขาดแฟคเตอร์ 8 อย่างรุนแรง เลือดจึงไม่สามารถแข็งตัวได้",
-                seq: "CATGGTCTAGGTCGAGTGACGCAGTGCTACGATGCTGACGTGCTACGACGTACGTGACGTGCTGACGTGCTAGCGTAGCTGACGTGCTAGCGTGACGTGCTAGCGTGACGTGCTGACGTGCTAGCGTAGCTGACGTGCTAGCGTGACGTGCTAG",
-                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.5821C>T"
-            },
-            hexa_mut: {
-                id: "HEXA-G269S", integrity: 35,
-                desc: "โรคเทย์-แซกส์: การกลายพันธุ์ระดับยีน HEXA (G > A) ทำให้เอนไซม์ Beta-hexosaminidase A เสียหาย ไขมัน GM2 ganglioside จึงสะสมทำลายเซลล์ประสาทในสมอง",
-                seq: "ACTGTGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGA",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.805G>A"
-            },
-            serpina1_mut: {
-                id: "A1AT-PiZ", integrity: 60,
-                desc: "ภาวะพร่องเอนไซม์ Alpha-1 (PiZ Allele): ยีน SERPINA1 กลายพันธุ์ (G > A) เปลี่ยนกลูตามิกเป็นไลซีน (Glu342Lys) ทำให้เอนไซม์ม้วนตัวผิดรูป สะสมทำลายตับและขาดในปอด",
-                seq: "GGCCTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGACCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGC",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1096G>A"
-            },
-            galt_mut: {
-                id: "GALT-Q188R", integrity: 70,
-                desc: "โรคกาแลคโตซีเมีย: ยีน GALT ผิดปกติ (A > G) เปลี่ยนกลูตามีนเป็นอาร์จินีน (Gln188Arg) เอนไซม์ GALT จึงไม่ทำงาน ส่งผลให้กาแลคโตสเป็นพิษสะสมในร่างกาย",
-                seq: "TGACGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCT",
-                mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.563A>G"
-            },
-            dmd_mut: {
-                id: "DMD-R195X", integrity: 45,
-                desc: "โรคกล้ามเนื้อเสื่อมดูเชน (DMD): เกิดรหัสหยุดก่อนกำหนดในยีน DMD (C > T) ทำให้กระบวนการสร้างโปรตีนดิสโทรฟินหยุดชะงัก กล้ามเนื้อจึงถูกทำลายอย่างรุนแรงตั้งแต่วัยเด็ก",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATCCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.583C>T"
-            },
-            atp7b_mut: {
-                id: "ATP7B-H1069Q", integrity: 62,
-                desc: "โรควิลสัน: การกลายพันธุ์หลักที่ยีน ATP7B (A > C) ทำให้การทำงานของตัวขนส่งทองแดงบกพร่อง ทองแดงจึงไม่ถูกขับทิ้งและสะสมสร้างความเสียหายต่อตับและระบบประสาท",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "A", mutatedBase: "C", displayPos: "c.3207A>C"
-            },
-            gba_mut: {
-                id: "GBA-N370S", integrity: 58,
-                desc: "โรคโกเชร์ (Gaucher Disease): ยีน GBA กลายพันธุ์ (A > G) เปลี่ยนแอสพาราจีนเป็นซีรีน (Asn370Ser) เอนไซม์กลูโคซีรีโบรซิเดสจึงลดลง ไขมันสะสมในชั้นเซลล์แมคโครฟาจ",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.1226A>G"
-            },
-            tyr_mut: {
-                id: "TYR-R402Q", integrity: 80,
-                desc: "ภาวะผิวเผือก (Oculocutaneous Albinism): ยีน TYR ผิดปกติ (G > A) ทำให้เอนไซม์ไทโรซิเนสไม่สามารถสังเคราะห์เม็ดสีเมลานินได้ ผิวหนังและดวงตาจึงขาดสีสัน",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATGCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1205G>A"
-            },
-            opn1lw_mut: {
-                id: "OPN1LW-C203R", integrity: 88,
-                desc: "โรคตาบอดสีแดง-เขียว: การกลายพันธุ์ที่ยีน OPN1LW บนโครโมโซม X (T > C) ทำลายโครงสร้างโปรตีนเซลล์รูปกรวยที่รับแสงสีแดง ทำให้การแยกแยะสีผิดเพี้ยนไปจากความจริง",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATTCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "T", mutatedBase: "C", displayPos: "c.607T>C"
-            },
-            tp53_mut: {
-                id: "TP53-R175H", integrity: 30,
-                desc: "มะเร็งหลากหลายชนิด (เช่น ลำไส้ใหญ่ เต้านม): ยีน TP53 (ผู้พิทักษ์จีโนม) กลายพันธุ์ที่ Exon 5 (G > A) เปลี่ยนอาร์จินีนเป็นฮิสทิดีน ทำให้โปรตีน p53 เสียรูปและไม่สามารถยับยั้งเซลล์มะเร็งได้",
-                seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCGCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG",
-                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.524G>A (rs28934578)"
-            },
-            egfr_mut: {
-                id: "EGFR-L858R", integrity: 40,
-                desc: "มะเร็งปอด (NSCLC): การกลายพันธุ์ที่ Exon 21 ของยีน EGFR (T > G) เปลี่ยนลูซีนเป็นอาร์จินีน ทำให้ตัวรับสัญญาณกระตุ้นการแบ่งตัวของเซลล์ตลอดเวลาแม้ไม่มีสัญญาณสั่งการ",
-                seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCTCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG",
-                mutationIdx: 50, normalBase: "T", mutatedBase: "G", displayPos: "c.2573T>G (rs121434568)"
-            },
-            brca1_mut: {
-                id: "BRCA1-C61G", integrity: 45,
-                desc: "มะเร็งเต้านมและรังไข่: ยีน BRCA1 เกิดการกลายพันธุ์ (T > G) ที่บริเวณ RING domain ทำลายความสามารถในการซ่อมแซม DNA ที่แตกหัก ทำให้ยีนอื่นกลายพันธุ์ตามได้ง่ายขึ้น",
-                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATTCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
-                mutationIdx: 50, normalBase: "T", mutatedBase: "G", displayPos: "c.181T>G (rs28897672)"
-            },
-            pik3ca_mut: {
-                id: "PIK3CA-H1047R", integrity: 35,
-                desc: "มะเร็งเต้านมและระบบทางเดินอาหาร: การกลายพันธุ์ในยีน PIK3CA (A > G) เปลี่ยนฮิสทิดีนเป็นอาร์จินีน กระตุ้นวิถีสัญญาณ PI3K/AKT ให้เซลล์มะเร็งเจริญเติบโตและลุกลามอย่างรวดเร็ว",
-                seq: "ACTGTGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGA",
-                mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.3140A>G (rs121913279)"
-            }
+            hbb_normal: { id: "HBB-WT", integrity: 100, desc: "ยีน HBB (Hemoglobin Beta) ลำดับเบสอ้างอิงจาก NCBI มีความสมบูรณ์ ถอดรหัสเป็นกรดกลูตามิก (Glu) ที่ตำแหน่ง 6 อย่างถูกต้อง", seq: "ATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGTTGGTATCAAGGTTACAAGACAGGTTTAAGGAGACCAATAGAAACTGGGCATGTGGAGACAGAGAAG", mutationIdx: -1, normalBase: null, mutatedBase: null, displayPos: "" },
+            hbb_sickle: { id: "HBB-SCA", integrity: 65, desc: "โรคโลหิตจางเม็ดเลือดแดงรูปเคียว: พบการกลายพันธุ์ Point Mutation แบบ Transversion (A > T) ส่งผลให้กรดกลูตามิกเปลี่ยนเป็นวาลีน (Glu6Val)", seq: "ATGGTGCACCTGACTCCTGTGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGTTGGTATCAAGGTTACAAGACAGGTTTAAGGAGACCAATAGAAACTGGGCATGTGGAGACAGAGAAG", mutationIdx: 19, normalBase: "A", mutatedBase: "T", displayPos: "c.17A>T (rs334)" },
+            braf_mut: { id: "BRAF-V600E", integrity: 42, desc: "มะเร็งเมลาโนมา: การกลายพันธุ์ที่ Exon 15 ของยีน BRAF (T > A) เปลี่ยนวาลีนเป็นกลูตามิก (Val600Glu) ทำให้ไคเนสทำงานตลอดเวลาโดยไม่อาศัยสัญญาณกระตุ้น", seq: "TGTTTTCCTTTACTTACTACACCTCAGATATATTTCTTCATGAAGACCTCACAGTAAAAATAGGTGATTTTGGTCTAGCTACAGAGAAATCTCGATGGAGTGGGTCCCATCAGTTTGAACAGTTGTCTGGATCCATTTTGTGGATGGTAAGAATTGAGGC", mutationIdx: 84, normalBase: "T", mutatedBase: "A", displayPos: "c.1799T>A" },
+            cftr_mut: { id: "CFTR-G551D", integrity: 78, desc: "โรคซิสติกไฟโบรซิส: การกลายพันธุ์ที่ Exon 11 (G > A) เปลี่ยนไกลซีนเป็นกรดแอสปาร์ติก (Gly551Asp) ส่งผลให้ช่องผ่านคลอไรด์ที่ผิวเซลล์ไม่สามารถเปิดออกได้", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1652G>A" },
+            fgfr3_mut: { id: "FGFR3-G1138A", integrity: 85, desc: "โรคกระดูกอ่อนเตี้ยแคระ (Achondroplasia): การกลายพันธุ์ที่ยีน FGFR3 (G > A) ส่งผลให้ตัวรับสัญญาณยับยั้งการเจริญเติบโตของกระดูกทำงานมากเกินไป", seq: "CTGCCCCGCCGCCGGGCGTCCTCTACTTTCACCAGGCGGCCGACATGGTGAGTCTACACGGCCCGGGGCCCCGGGGGACGGGAGCAGTCCACCGACGGCGTGCCCGGGCGACGGGACCGACCGGGATCTCCCGGCGCCGCCGCCCCCCGCACCCGCAGGG", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1138G>A" },
+            pah_mut: { id: "PAH-R408W", integrity: 60, desc: "โรคฟีนิลคีโตนูเรีย (PKU): การกลายพันธุ์ในยีน PAH (C > T) ทำให้เอนไซม์ Phenylalanine Hydroxylase เสียสภาพ ไม่สามารถย่อยกรดอะมิโนฟีนิลอะลานีนได้", seq: "CCCATGGTTATGACCTTCGGGATGATTGTACAGGGGTACTTGATGTCCAGTAGGTGCTTGTAGTTGTGCTTTTTTCCGCCTTCTGGATTCTTCTCATCCAGCAAAATGGGCTTGGGAAAGGAGTTAATGATTTGTAGCCCTGTCAGTTGATTTTGAGCAA", mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.1222C>T" },
+            hfe_mut: { id: "HFE-C282Y", integrity: 72, desc: "โรคภาวะธาตุเหล็กเกิน: ยีน HFE กลายพันธุ์ (G > A) เปลี่ยนซีสเทอีนเป็นไทโรซีน (Cys282Tyr) ทำให้โปรตีนไม่สามารถควบคุมการดูดซึมธาตุเหล็กในลำไส้ได้", seq: "CCTCGCTGCGGTCCCTGCTGGTGACGTCCTCCTTATACTCTCCCAAAAGTACTCGGTGATATGCTGGTTCTACGTGCATGTGGAGCCGGGCGCGGAGCCCCTGCTGAAGACGTTCCACCACGCGCGTTCTTCACTACGAGTGCCCCATTCTTACATCCAA", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.845G>A" },
+            nf1_mut: { id: "NF1-R1947X", integrity: 55, desc: "โรคท้าวแสนปม (NF1): การเกิดรหัสหยุดก่อนกำหนด (Nonsense Mutation: C > T) ทำให้โปรตีน Neurofibromin ขาดหายไป ส่งผลให้เซลล์ประสาทแบ่งตัวผิดปกติ", seq: "TAAGTGGCTTTTGCACTTAGTGCTTCATTGTAAAAGAATGCCACAAGAAGTAAAGAATGTAGATCAGAAATATACTATTGGCACTTTACAACCAGGATATAGCATCAGTGGAATTAGATTAGCAAATGAACACAAGTCAAAAATTACATTTACAGTACAA", mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.5839C>T" },
+            ldlr_mut: { id: "LDLR-F208L", integrity: 68, desc: "คอเลสเตอรอลสูงทางพันธุกรรม (FH): การกลายพันธุ์ที่ยีน LDLR (C > A) ทำให้ตัวรับไขมัน LDL บนผิวเซลล์ตับทำงานผิดปกติ คอเลสเตอรอลจึงสะสมในเลือดปริมาณมาก", seq: "GTGCACGACTTCCACCGGCGCAGCCGGTGCGTGGAGCTGCCGGCACCCGTAGGCAACCACATGTGCTGCTCCCTACCGTGTAGCAACGAGTTCACCTCGATCTCCATGCCCTCGGCGCGCTGCGGCCGCCGGGACCCGCACGGCCACTACTCGCAGGTAA", mutationIdx: 50, normalBase: "C", mutatedBase: "A", displayPos: "c.622C>A" },
+            smn1_mut: { id: "SMN1-C840T", integrity: 40, desc: "โรคกล้ามเนื้ออ่อนแรง (SMA): การกลายพันธุ์แบบ Silent ที่ Exon 7 (C > T) ทำให้เกิดการข้ามเอ็กซอน (Exon Skipping) โปรตีน SMN จึงสั้นและสลายตัวเร็ว", seq: "CTGGACTCCAGACCTCATGGAAGAACAGTATGTGTATAAATTAAGTAATATACAAATCCTATGGAGTTCACCTACAAGTATATGCAATATTGATTCAAAGCATATTGATGTCTCGTATTGGGAAAGAACACAGAACCAAAATGCAAAAGATGATTTAAAA", mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.840C>T" },
+            fbn1_mut: { id: "FBN1-C1663R", integrity: 75, desc: "กลุ่มอาการมาร์ฟาน: การกลายพันธุ์ที่ยีน FBN1 (T > C) ทำลายโครงสร้างโปรตีนไฟบริลลิน-1 ทำให้เนื้อเยื่อเกี่ยวพันอ่อนแอ เสี่ยงต่อการฉีกขาดของหลอดเลือดแดงใหญ่", seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG", mutationIdx: 50, normalBase: "T", mutatedBase: "C", displayPos: "c.4987T>C" },
+            f8_mut: { id: "F8-R1941X", integrity: 65, desc: "โรคฮีโมฟีเลีย เอ: ยีน F8 บนโครโมโซม X เกิดการสร้างรหัสหยุดก่อนกำหนด (C > T) ทำให้ร่างกายขาดแฟคเตอร์ 8 อย่างรุนแรง เลือดจึงไม่สามารถแข็งตัวได้", seq: "CATGGTCTAGGTCGAGTGACGCAGTGCTACGATGCTGACGTGCTACGACGTACGTGACGTGCTGACGTGCTAGCGTAGCTGACGTGCTAGCGTGACGTGCTAGCGTGACGTGCTGACGTGCTAGCGTAGCTGACGTGCTAGCGTGACGTGCTAG", mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.5821C>T" },
+            hexa_mut: { id: "HEXA-G269S", integrity: 35, desc: "โรคเทย์-แซกส์: การกลายพันธุ์ระดับยีน HEXA (G > A) ทำให้เอนไซม์ Beta-hexosaminidase A เสียหาย ไขมัน GM2 ganglioside จึงสะสมทำลายเซลล์ประสาทในสมอง", seq: "ACTGTGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGA", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.805G>A" },
+            serpina1_mut: { id: "A1AT-PiZ", integrity: 60, desc: "ภาวะพร่องเอนไซม์ Alpha-1 (PiZ Allele): ยีน SERPINA1 กลายพันธุ์ (G > A) เปลี่ยนกลูตามิกเป็นไลซีน (Glu342Lys) ทำให้เอนไซม์ม้วนตัวผิดรูป สะสมทำลายตับและขาดในปอด", seq: "GGCCTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGACCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGC", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1096G>A" },
+            galt_mut: { id: "GALT-Q188R", integrity: 70, desc: "โรคกาแลคโตซีเมีย: ยีน GALT ผิดปกติ (A > G) เปลี่ยนกลูตามีนเป็นอาร์จินีน (Gln188Arg) เอนไซม์ GALT จึงไม่ทำงาน ส่งผลให้กาแลคโตสเป็นพิษสะสมในร่างกาย", seq: "TGACGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCT", mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.563A>G" },
+            dmd_mut: { id: "DMD-R195X", integrity: 45, desc: "โรคกล้ามเนื้อเสื่อมดูเชน (DMD): เกิดรหัสหยุดก่อนกำหนดในยีน DMD (C > T) ทำให้กระบวนการสร้างโปรตีนดิสโทรฟินหยุดชะงัก กล้ามเนื้อจึงถูกทำลายอย่างรุนแรงตั้งแต่วัยเด็ก", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATCCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.583C>T" },
+            atp7b_mut: { id: "ATP7B-H1069Q", integrity: 62, desc: "โรควิลสัน: การกลายพันธุ์หลักที่ยีน ATP7B (A > C) ทำให้การทำงานของตัวขนส่งทองแดงบกพร่อง ทองแดงจึงไม่ถูกขับทิ้งและสะสมสร้างความเสียหายต่อตับและระบบประสาท", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "A", mutatedBase: "C", displayPos: "c.3207A>C" },
+            gba_mut: { id: "GBA-N370S", integrity: 58, desc: "โรคโกเชร์ (Gaucher Disease): ยีน GBA กลายพันธุ์ (A > G) เปลี่ยนแอสพาราจีนเป็นซีรีน (Asn370Ser) เอนไซม์กลูโคซีรีโบรซิเดสจึงลดลง ไขมันสะสมในชั้นเซลล์แมคโครฟาจ", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.1226A>G" },
+            tyr_mut: { id: "TYR-R402Q", integrity: 80, desc: "ภาวะผิวเผือก (Oculocutaneous Albinism): ยีน TYR ผิดปกติ (G > A) ทำให้เอนไซม์ไทโรซิเนสไม่สามารถสังเคราะห์เม็ดสีเมลานินได้ ผิวหนังและดวงตาจึงขาดสีสัน", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATGCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1205G>A" },
+            opn1lw_mut: { id: "OPN1LW-C203R", integrity: 88, desc: "โรคตาบอดสีแดง-เขียว: การกลายพันธุ์ที่ยีน OPN1LW บนโครโมโซม X (T > C) ทำลายโครงสร้างโปรตีนเซลล์รูปกรวยที่รับแสงสีแดง ทำให้การแยกแยะสีผิดเพี้ยนไปจากความจริง", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATTCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "T", mutatedBase: "C", displayPos: "c.607T>C" },
+            tp53_mut: { id: "TP53-R175H", integrity: 30, desc: "มะเร็งหลากหลายชนิด (เช่น ลำไส้ใหญ่ เต้านม): ยีน TP53 (ผู้พิทักษ์จีโนม) กลายพันธุ์ที่ Exon 5 (G > A) เปลี่ยนอาร์จินีนเป็นฮิสทิดีน ทำให้โปรตีน p53 เสียรูปและไม่สามารถยับยั้งเซลล์มะเร็งได้", seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCGCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG", mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.524G>A (rs28934578)" },
+            egfr_mut: { id: "EGFR-L858R", integrity: 40, desc: "มะเร็งปอด (NSCLC): การกลายพันธุ์ที่ Exon 21 ของยีน EGFR (T > G) เปลี่ยนลูซีนเป็นอาร์จินีน ทำให้ตัวรับสัญญาณกระตุ้นการแบ่งตัวของเซลล์ตลอดเวลาแม้ไม่มีสัญญาณสั่งการ", seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCTCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG", mutationIdx: 50, normalBase: "T", mutatedBase: "G", displayPos: "c.2573T>G (rs121434568)" },
+            brca1_mut: { id: "BRCA1-C61G", integrity: 45, desc: "มะเร็งเต้านมและรังไข่: ยีน BRCA1 เกิดการกลายพันธุ์ (T > G) ที่บริเวณ RING domain ทำลายความสามารถในการซ่อมแซม DNA ที่แตกหัก ทำให้ยีนอื่นกลายพันธุ์ตามได้ง่ายขึ้น", seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATTCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG", mutationIdx: 50, normalBase: "T", mutatedBase: "G", displayPos: "c.181T>G (rs28897672)" },
+            pik3ca_mut: { id: "PIK3CA-H1047R", integrity: 35, desc: "มะเร็งเต้านมและระบบทางเดินอาหาร: การกลายพันธุ์ในยีน PIK3CA (A > G) เปลี่ยนฮิสทิดีนเป็นอาร์จินีน กระตุ้นวิถีสัญญาณ PI3K/AKT ให้เซลล์มะเร็งเจริญเติบโตและลุกลามอย่างรวดเร็ว", seq: "ACTGTGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGA", mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.3140A>G (rs121913279)" }
         };
 
-        // เพิ่มพิกัดตำแหน่งยีนบนโครโมโซม (1.0 = ปลายแขน p ด้านบน, -1.0 = ปลายแขน q ด้านล่าง)
         const chrPositions = {
             hbb_normal: 0.8, hbb_sickle: 0.8, braf_mut: -0.5, cftr_mut: -0.4, fgfr3_mut: 0.9, pah_mut: -0.3, 
             hfe_mut: 0.7, nf1_mut: -0.1, ldlr_mut: 0.8, smn1_mut: -0.6, fbn1_mut: -0.7, f8_mut: -0.9, 
@@ -388,7 +269,6 @@
             tyr_mut: -0.3, opn1lw_mut: -0.8, tp53_mut: 0.5, egfr_mut: 0.7, brca1_mut: -0.5, pik3ca_mut: -0.8
         };
         
-        // ข้อมูลโครโมโซมคู่ที่ 1-22 และ X/Y พร้อมพิกัด Cytogenetic Band
         const chrInfo = {
             hbb_normal: { num: "11", locus: "11p15.4" }, hbb_sickle: { num: "11", locus: "11p15.4" },
             braf_mut: { num: "7", locus: "7q34" }, cftr_mut: { num: "7", locus: "7q31.2" },
@@ -414,16 +294,24 @@
                 : data.desc;
 
             const mutCard = document.getElementById('mutation-card');
+            const intCard = document.getElementById('integrity-card');
+            
             if (data.mutationIdx > -1) {
                 mutCard.classList.remove('hidden');
+                mutCard.classList.add('flex');
+                intCard.style.opacity = '0';
+                setTimeout(() => intCard.classList.add('hidden'), 300);
+                
                 document.getElementById('mut-position').innerText = `ตำแหน่ง: ${data.displayPos}`;
                 document.getElementById('mut-normal').innerText = data.normalBase;
                 document.getElementById('mut-mutated').innerText = data.mutatedBase;
             } else {
                 mutCard.classList.add('hidden');
+                mutCard.classList.remove('flex');
+                intCard.classList.remove('hidden');
+                setTimeout(() => intCard.style.opacity = '1', 10);
             }
 
-            // อัปเดตข้อมูลโครโมโซมที่ค้นพบ
             const cInfo = chrInfo[sampleKey];
             const chrNumText = isNaN(cInfo.num) ? `โครโมโซม ${cInfo.num} (เพศ)` : `คู่ที่ ${cInfo.num} (จาก 23 คู่)`;
             document.getElementById('chr-number').innerText = chrNumText;
@@ -436,10 +324,10 @@
             const bar = document.getElementById('integrity-bar');
             if (data.integrity === 100) {
                 icon.className = "fa-solid fa-shield-halved text-emerald-500";
-                bar.className = "bg-gradient-to-r from-emerald-400 to-emerald-500 w-full h-full rounded-full shadow-sm";
+                bar.className = "bg-gradient-to-r from-emerald-400 to-emerald-500 w-full h-full rounded-full transition-all duration-1000";
             } else {
                 icon.className = "fa-solid fa-triangle-exclamation text-red-500 animate-pulse";
-                bar.className = "bg-gradient-to-r from-red-500 to-orange-400 w-full h-full rounded-full shadow-sm";
+                bar.className = "bg-gradient-to-r from-red-500 to-orange-400 w-full h-full rounded-full transition-all duration-1000";
             }
 
             let counts = { 'A': 0, 'T': 0, 'C': 0, 'G': 0 };
@@ -450,7 +338,6 @@
                 const pct = ((counts[base] / total) * 100).toFixed(1);
                 const valEl = document.getElementById(`val-${base.toLowerCase()}`);
                 const barEl = document.getElementById(`bar-${base.toLowerCase()}`);
-                // ป้องกัน Error โดยเช็คก่อนว่ามีกล่องข้อมูลนี้อยู่ในหน้าเว็บหรือไม่
                 if (valEl && barEl) {
                     valEl.innerText = `${pct}%`;
                     barEl.style.width = `${pct}%`;
@@ -474,15 +361,13 @@
 
         const canvas = document.getElementById('three-canvas');
         const scene = new THREE.Scene();
-        // Set to a clean, bright light blue/white
         scene.background = new THREE.Color(0xf0f8ff);
         scene.fog = new THREE.FogExp2(0xf0f8ff, 0.015);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 45);
-        scene.add(camera); // นำกล้องเข้า scene เพื่อให้ HUD ที่ผูกกับกล้องทำงานได้
+        scene.add(camera);
 
-        // --- 3D CHROMOSOME HUD (มินิแมพโครโมโซมมุมซ้ายล่าง) ---
         const chrGroup = new THREE.Group();
         const chrMat = new THREE.MeshPhysicalMaterial({ 
             color: 0x64748b, 
@@ -491,8 +376,8 @@
             roughness: 0.1, 
             clearcoat: 1.0,
             side: THREE.DoubleSide,
-            depthWrite: false // <--- ป้องกันบั๊กเรนเดอร์ภาพขาดหายเมื่อวัตถุโปร่งใสซ้อนทับกัน
-        }); // ทำให้โปร่งใส มองทะลุได้แบบกระจกโฮโลแกรม
+            depthWrite: false
+        });
         
         const centro = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), chrMat);
         chrGroup.add(centro);
@@ -502,52 +387,46 @@
         const capGeo = new THREE.SphereGeometry(0.2, 16, 16);
         const capGeoLong = new THREE.SphereGeometry(0.25, 16, 16);
 
-        // ฟังก์ชันสร้างสาย DNA ขดไปมา (เส้นขดเกลียวสีดำด้านใน)
         function createCoil(length, radius, coils) {
             const points = [];
-            const segments = 120; // ความละเอียดของเส้น
-            const extendedLength = length + 0.3; // เผื่อความยาวให้ทะลุไปถึงขั้วและแกนกลาง
+            const segments = 120; 
+            const extendedLength = length + 0.3; 
             for (let i = 0; i <= segments; i++) {
                 const t = i / segments; 
                 const y = (t - 0.5) * extendedLength; 
-                const angle = t * Math.PI * 2 * coils;
-                
-                // เพิ่ม Noise ความหยักยุ่งเหยิงนิดหน่อยให้ดูเหมือนการขดตัวของ DNA จริงๆ
-                const noise = Math.sin(t * Math.PI * 15) * 0.02;
+                const angle = t * Math.PI * 2 * coils; // FIXED MATH
+                const noise = Math.sin(t * Math.PI * 15) * 0.02; // FIXED MATH
                 
                 const x = Math.cos(angle) * (radius + noise);
                 const z = Math.sin(angle) * (radius + noise);
                 points.push(new THREE.Vector3(x, y, z));
             }
             const curve = new THREE.CatmullRomCurve3(points);
-            const geo = new THREE.TubeGeometry(curve, segments, 0.012, 5, false); // เส้นเล็กๆ 
-            const mat = new THREE.MeshBasicMaterial({ color: 0x111827 }); // สีดำเข้ม (Dark Slate)
+            const geo = new THREE.TubeGeometry(curve, segments, 0.012, 5, false);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x111827 });
             return new THREE.Mesh(geo, mat);
         }
 
-        // p-arms (แขนสั้นด้านบน)
         const p1 = new THREE.Mesh(armGeo, chrMat); p1.position.set(-0.2, 0.6, 0); p1.rotation.z = Math.PI/12; 
-        p1.add(createCoil(1.2, 0.08, 12)); // ยัดเส้นขด DNA สีดำเข้าไป
+        p1.add(createCoil(1.2, 0.08, 12));
         chrGroup.add(p1);
         const c1 = new THREE.Mesh(capGeo, chrMat); c1.position.set(-0.35, 1.2, 0); chrGroup.add(c1);
         
         const p2 = new THREE.Mesh(armGeo, chrMat); p2.position.set(0.2, 0.6, 0); p2.rotation.z = -Math.PI/12; 
-        p2.add(createCoil(1.2, 0.08, 12)); // ยัดเส้นขด DNA สีดำเข้าไป
+        p2.add(createCoil(1.2, 0.08, 12));
         chrGroup.add(p2);
         const c2 = new THREE.Mesh(capGeo, chrMat); c2.position.set(0.35, 1.2, 0); chrGroup.add(c2);
 
-        // q-arms (แขนยาวด้านล่าง)
         const q1 = new THREE.Mesh(armGeoLong, chrMat); q1.position.set(-0.25, -0.9, 0); q1.rotation.z = -Math.PI/12; 
-        q1.add(createCoil(1.8, 0.1, 18)); // ยัดเส้นขด DNA สีดำเข้าไป (พันรอบเยอะกว่าเพราะแขนยาว)
+        q1.add(createCoil(1.8, 0.1, 18)); 
         chrGroup.add(q1);
         const cq1 = new THREE.Mesh(capGeoLong, chrMat); cq1.position.set(-0.45, -1.8, 0); chrGroup.add(cq1);
         
         const q2 = new THREE.Mesh(armGeoLong, chrMat); q2.position.set(0.25, -0.9, 0); q2.rotation.z = Math.PI/12; 
-        q2.add(createCoil(1.8, 0.1, 18)); // ยัดเส้นขด DNA สีดำเข้าไป
+        q2.add(createCoil(1.8, 0.1, 18));
         chrGroup.add(q2);
         const cq2 = new THREE.Mesh(capGeoLong, chrMat); cq2.position.set(0.45, -1.8, 0); chrGroup.add(cq2);
 
-        // จุดกระพริบสีแดงบอกตำแหน่ง (ปรับเป็น 2 จุด ซ้าย-ขวา ฝังในแกนกลางโครมาทิดเป๊ะๆ)
         const indicatorMat = new THREE.MeshPhysicalMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 2 });
         const indicatorGroup = new THREE.Group();
         
@@ -564,8 +443,9 @@
         indicatorGroup.add(indicatorDotR);
         chrGroup.add(indicatorGroup);
 
-        camera.add(chrGroup); // ผูกติดหน้ากล้อง
-        
+        // ผูกโครโมโซมติดกับกล้องให้แสดงผลแบบ HUD (ขยับตามกล้องเสมอ)
+        camera.add(chrGroup);
+
         // กำหนดมุมเริ่มต้น
         const baseChrRotY = Math.PI / 4;
         const baseChrRotZ = Math.PI / 12;
@@ -583,11 +463,25 @@
         function updateChromosomePosition() {
             const dist = 10;
             const vFov = (camera.fov * Math.PI) / 180;
-            const height = 2 * Math.tan(vFov / 2) * dist;
+            const height = 2 * Math.tan(vFov / 2) * dist; 
             const width = height * camera.aspect;
-            // ย้ายโครโมโซมไปเกาะมุมซ้ายบน (Top-Left) โดยเว้นระยะไม่ให้ชนเมนู Header
-            chrGroup.position.set(-width / 2 + 1.8, height / 2 - 2.8, -dist);
-            chrGroup.scale.set(0.6, 0.6, 0.6);
+            
+            const isMobile = window.innerWidth < 768;
+            const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+
+            if (isMobile) {
+                // บนมือถือ ลดขนาดและย้ายมาอยู่มุมซ้ายล่าง เพื่อไม่ให้บังข้อมูลและ DNA
+                chrGroup.position.set(-width / 2 + 1.0, -height / 2 + 2.2, -dist); 
+                chrGroup.scale.set(0.35, 0.35, 0.35);
+            } else if (isTablet) {
+                // บน iPad ลดขนาดลงเล็กน้อย จัดให้อยู่มุมซ้ายบน
+                chrGroup.position.set(-width / 2 + 1.5, height / 2 - 3.2, -dist); 
+                chrGroup.scale.set(0.45, 0.45, 0.45);
+            } else {
+                // บน PC ปกติ (มุมซ้ายบน)
+                chrGroup.position.set(-width / 2 + 1.8, height / 2 - 2.8, -dist); 
+                chrGroup.scale.set(0.6, 0.6, 0.6);
+            }
         }
         updateChromosomePosition();
         // ----------------------------------------------------
@@ -601,45 +495,29 @@
         controls.dampingFactor = 0.05;
         controls.autoRotate = true;
         controls.autoRotateSpeed = 1.0;
-        
-        // Disable OrbitControls default zoom so we can use the mouse wheel exclusively for vertical scrolling
         controls.enableZoom = false; 
         controls.enablePan = false; 
 
-        // Lighting for Light Mode
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // ลดแสงรอบทิศทางลงเพื่อสร้างมิติเงา
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
-
-        const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2); // เพิ่มแสงตกกระทบหลักให้วัตถุสว่างพุ่งออกมา
+        const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight1.position.set(20, 20, 20);
         scene.add(dirLight1);
-
-        const rimLight = new THREE.DirectionalLight(0x2563eb, 0.8); // แสงรองสีฟ้าเข้มเพื่อขับขอบวัตถุ
+        const rimLight = new THREE.DirectionalLight(0x2563eb, 0.8);
         rimLight.position.set(-20, 0, -20);
         scene.add(rimLight);
 
-        // Adjust materials for daytime visibility - สีต้องสด, เข้ม และมีความมันวาวแบบพรีเมียม
         const backboneMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x1e293b, // เปลี่ยนแกนสันหลังเป็นเทาเข้มเกือบดำ (Dark Slate) ตัดกับพื้นขาวชัดเจน
-            emissive: 0x000000,
-            metalness: 0.6, // เพิ่มความเงาแบบโลหะ
-            roughness: 0.15,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.1
+            color: 0x1e293b, emissive: 0x000000, metalness: 0.6, roughness: 0.15, clearcoat: 1.0, clearcoatRoughness: 0.1
         });
 
-        // Base colors - ใช้สีเข้ม (Deep Saturated) ลดแสงฟุ้ง ให้เนื้อสีแน่นและตัดกับฉาก
-        const matA = new THREE.MeshPhysicalMaterial({ color: 0xe11d48, emissive: 0xe11d48, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // แดงเข้ม
-        const matT = new THREE.MeshPhysicalMaterial({ color: 0x1d4ed8, emissive: 0x1d4ed8, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // น้ำเงินเข้ม
-        const matC = new THREE.MeshPhysicalMaterial({ color: 0x047857, emissive: 0x047857, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // เขียวเข้ม
-        const matG = new THREE.MeshPhysicalMaterial({ color: 0xc2410c, emissive: 0xc2410c, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // ส้มเข้ม
+        const matA = new THREE.MeshPhysicalMaterial({ color: 0xe11d48, emissive: 0xe11d48, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 });
+        const matT = new THREE.MeshPhysicalMaterial({ color: 0x1d4ed8, emissive: 0x1d4ed8, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 });
+        const matC = new THREE.MeshPhysicalMaterial({ color: 0x047857, emissive: 0x047857, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 });
+        const matG = new THREE.MeshPhysicalMaterial({ color: 0xc2410c, emissive: 0xc2410c, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 });
         
         const matMutated = new THREE.MeshPhysicalMaterial({ 
-            color: 0xff0000, 
-            emissive: 0xff0000, 
-            emissiveIntensity: 1.5, 
-            roughness: 0.1,
-            clearcoat: 1.0
+            color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1.5, roughness: 0.1, clearcoat: 1.0
         });
 
         const atomGeo = new THREE.SphereGeometry(0.55, 16, 16);
@@ -654,27 +532,22 @@
             while(dnaGroup.children.length > 0){ dnaGroup.remove(dnaGroup.children[0]); }
             blinkLights = []; blinkMaterials = [];
 
-            // อัปเดตตำแหน่งจุดบนโครโมโซม HUD
             if (data && data.mutationIdx > -1) {
                 indicatorGroup.visible = true;
-                
-                // คำนวณพิกัดแกน X และ Y ให้จุด "ฝังอยู่ตรงกลาง" แขนโครโมโซมที่กางออก (Sister Chromatids)
                 let targetY = 0;
                 let targetX = 0;
-                let ratio = Math.abs(data.chrPos); // อัตราส่วนความลึก (0.0 ถึง 1.0)
+                let ratio = Math.abs(data.chrPos);
 
                 if (data.chrPos > 0) {
-                    // p-arm (แขนสั้นด้านบน) แนวทะแยงจากศูนย์กลาง (0,0) ไปจนถึงปลายแคปที่ (0.35, 1.2)
                     targetY = ratio * 1.2;
                     targetX = ratio * 0.35;
                 } else {
-                    // q-arm (แขนยาวด้านล่าง) แนวทะแยงจากศูนย์กลาง (0,0) ไปจนถึงปลายแคปที่ (0.45, -1.8)
                     targetY = -ratio * 1.8;
                     targetX = ratio * 0.45;
                 }
                 
-                indicatorDotL.position.set(-targetX, targetY, 0); // ฝังลงตรงกลางแขนซ้าย
-                indicatorDotR.position.set(targetX, targetY, 0);  // ฝังลงตรงกลางแขนขวา
+                indicatorDotL.position.set(-targetX, targetY, 0);
+                indicatorDotR.position.set(targetX, targetY, 0);
                 
                 blinkMaterials.push(indicatorMat);
                 blinkLights.push(indicatorLightL);
@@ -717,7 +590,7 @@
                 const isMutation = (i === mutationIdx);
                 if (isMutation) {
                     m1 = matMutated.clone(); 
-                    const mutLight = new THREE.PointLight(0xff0000, 2, 20); // Softer light for bright bg
+                    const mutLight = new THREE.PointLight(0xff0000, 2, 20);
                     mutLight.position.copy(center);
                     dnaGroup.add(mutLight);
                     blinkLights.push(mutLight);
@@ -725,28 +598,21 @@
                     
                     dnaGroup.userData.mutCenter = center.clone();
 
-                    // สร้างกล่องทรงกระบอก (HUD Bounding Box) ปลายเปิด ครอบจุดที่ผิดปกติ
-                    const cylinderGeo = new THREE.CylinderGeometry(5.8, 5.8, 3.8, 32, 1, true); // รัศมี 5.8 กว้างพอคลุมเกลียว DNA (รัศมี 4.2)
+                    const cylinderGeo = new THREE.CylinderGeometry(5.8, 5.8, 3.8, 32, 1, true);
                     const cylinderMat = new THREE.MeshPhysicalMaterial({
-                        color: 0xff0000,
-                        emissive: 0xff0000,
-                        emissiveIntensity: 0.5,
-                        transparent: true,
-                        opacity: 0.15, // โปร่งแสงให้เห็น DNA ข้างใน
-                        side: THREE.DoubleSide,
-                        depthWrite: false // ป้องกันบั๊กการเรนเดอร์ทับซ้อนของวัตถุโปร่งแสง
+                        color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.5,
+                        transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false
                     });
                     const mutBox = new THREE.Mesh(cylinderGeo, cylinderMat);
                     mutBox.position.copy(center);
                     
-                    // เพิ่มเส้นขอบโครงข่าย (Edges) ให้ดูเหมือนกรอบสแกนเนอร์โฮโลแกรม
                     const edgesGeo = new THREE.EdgesGeometry(cylinderGeo);
                     const edgesMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
                     const mutBoxEdges = new THREE.LineSegments(edgesGeo, edgesMat);
                     mutBox.add(mutBoxEdges);
 
                     dnaGroup.add(mutBox);
-                    blinkMaterials.push(cylinderMat); // ส่งให้ระบบช่วยกระพริบแสงไปพร้อมกับจังหวะเตือน
+                    blinkMaterials.push(cylinderMat);
                 }
 
                 const path1 = new THREE.LineCurve3(p1, center);
@@ -775,18 +641,23 @@
             
             dnaGroup.updateMatrixWorld();
             
+            // ปรับระยะห่างกล้องอัตโนมัติตามขนาดหน้าจอ เพื่อไม่ให้ DNA ใหญ่ล้นจอในมือถือ
+            const isMobile = window.innerWidth < 768;
+            const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+            const cameraZ = isMobile ? 65 : (isTablet ? 55 : 45);
+
             if(mutationIdx > -1 && dnaGroup.userData.mutCenter) {
                 const worldPos = dnaGroup.userData.mutCenter.clone().applyMatrix4(dnaGroup.matrixWorld);
                 controls.target.copy(worldPos); 
-                camera.position.set(worldPos.x, worldPos.y, worldPos.z + 45);
+                camera.position.set(worldPos.x, worldPos.y, worldPos.z + cameraZ);
             } else {
                 controls.target.set(0, 0, 0);
-                camera.position.set(0, 0, 45);
+                camera.position.set(0, 0, cameraZ);
             }
         }
 
         const particlesGeo = new THREE.BufferGeometry();
-        const particlesCount = 800; // More particles for cinematic feel
+        const particlesCount = 800; 
         const posArray = new Float32Array(particlesCount * 3);
         
         for(let i = 0; i < particlesCount * 3; i++) {
@@ -809,7 +680,17 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            updateChromosomePosition(); // ขยับ HUD โครโมโซมให้เกาะมุมจอเวลาพลิกมือถือ
+            
+            // ขยับ HUD โครโมโซมให้เข้าที่เมื่อขนาดหน้าจอเปลี่ยน
+            updateChromosomePosition(); 
+            
+            // อัปเดตระยะซูมกล้องเมื่อหมุนหน้าจอ หรือเปลี่ยนขนาดหน้าจอ
+            const isMobile = window.innerWidth < 768;
+            const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+            const targetZ = isMobile ? 65 : (isTablet ? 55 : 45);
+            
+            // รักษาระยะ Z ให้สัมพันธ์กับพิกัดที่กำลังโฟกัสอยู่
+            camera.position.z = controls.target.z + targetZ;
         }, false);
 
         document.getElementById('sample-selector').addEventListener('change', (e) => {
@@ -826,38 +707,32 @@
         function togglePanel() {
             isPanelVisible = !isPanelVisible;
             if (isPanelVisible) {
-                // Show Panel
                 dataPanel.style.display = 'block';
                 setTimeout(() => {
                     dataPanel.style.opacity = '1';
                     dataPanel.style.transform = 'translateY(0) scaleY(1)';
                 }, 10);
                 
-                // Update Desktop Button
                 toggleText.innerText = 'ซ่อนข้อมูล';
                 toggleIcon.className = 'fa-solid fa-eye-slash';
                 btnDesktop.classList.replace('from-slate-500', 'from-blue-600');
                 btnDesktop.classList.replace('to-slate-600', 'to-blue-500');
                 
-                // Update Mobile Button
                 btnMobile.innerHTML = '<i class="fa-solid fa-eye-slash"></i> ซ่อน';
                 btnMobile.classList.replace('bg-slate-100', 'bg-blue-50');
                 btnMobile.classList.replace('text-slate-600', 'text-blue-700');
             } else {
-                // Hide Panel
                 dataPanel.style.opacity = '0';
                 dataPanel.style.transform = 'translateY(-10px) scaleY(0.95)';
                 setTimeout(() => {
                     dataPanel.style.display = 'none';
-                }, 300); // Matches transition duration
+                }, 300);
                 
-                // Update Desktop Button
                 toggleText.innerText = 'ดูข้อมูล';
                 toggleIcon.className = 'fa-solid fa-eye';
                 btnDesktop.classList.replace('from-blue-600', 'from-slate-500');
                 btnDesktop.classList.replace('to-blue-500', 'to-slate-600');
                 
-                // Update Mobile Button
                 btnMobile.innerHTML = '<i class="fa-solid fa-eye"></i> ดูข้อมูล';
                 btnMobile.classList.replace('bg-blue-50', 'bg-slate-100');
                 btnMobile.classList.replace('text-blue-700', 'text-slate-600');
@@ -867,18 +742,12 @@
         btnDesktop.addEventListener('click', togglePanel);
         btnMobile.addEventListener('click', togglePanel);
 
-        // --------------------------------------------------------
-        // NEW INTUITIVE SCROLLING LOGIC (BOUND TO CANVAS ONLY)
-        // --------------------------------------------------------
-        
-        // Mouse Wheel (Desktop) - Bound to canvas to avoid UI interference
         canvas.addEventListener('wheel', (event) => {
             const scrollSpeed = 0.05;
             controls.target.y -= event.deltaY * scrollSpeed;
             camera.position.y -= event.deltaY * scrollSpeed;
         }, { passive: true });
 
-        // Touch Swipe (Mobile / iPad) - Bound to canvas
         let touchStartY = 0;
         canvas.addEventListener('touchstart', (e) => {
             touchStartY = e.touches[0].clientY;
@@ -897,8 +766,6 @@
             }
         }, { passive: true });
 
-        // --------------------------------------------------------
-
         const clock = new THREE.Clock();
 
         function animate() {
@@ -911,7 +778,7 @@
             dnaGroup.position.y = Math.sin(elapsedTime * 0.5) * 0.8;
 
             const pulse = (Math.sin(elapsedTime * 10) + 1) / 2; 
-            blinkLights.forEach(light => { light.intensity = 1 + (pulse * 8); }); // Stronger pulse for dark mode
+            blinkLights.forEach(light => { light.intensity = 1 + (pulse * 8); });
             blinkMaterials.forEach(mat => { mat.emissiveIntensity = 1 + (pulse * 5); });
 
             const maxY = 150;
@@ -929,13 +796,10 @@
             renderer.render(scene, camera);
         }
 
-        setTimeout(() => {
-            const hint = document.getElementById('nav-hint');
-            if (hint) hint.style.opacity = '0';
-        }, 7000);
-
-        updateUI('hbb_normal');
-        animate();
+        window.onload = function() {
+            updateUI('hbb_normal');
+            animate();
+        };
     </script>
 </body>
 </html>
