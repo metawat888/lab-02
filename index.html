@@ -452,13 +452,12 @@
         chrGroup.rotation.y = baseChrRotY; 
         chrGroup.rotation.z = baseChrRotZ;
 
-        // ให้โครโมโซมหมุนตามเมาส์ (Interactive Mouse Tracking)
-        window.addEventListener('mousemove', (e) => {
-            const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-            const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-            chrGroup.rotation.y = baseChrRotY + (mouseX * 0.8);
-            chrGroup.rotation.x = (mouseY * 0.8);
-        });
+        // เพิ่ม Raycaster สำหรับตรวจจับการคลิก/สัมผัสโครโมโซม
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let isDraggingChromosome = false;
+        let isDraggingDNA = false;
+        let previousPointer = { x: 0, y: 0 };
 
         function updateChromosomePosition() {
             const dist = 10;
@@ -742,29 +741,63 @@
         btnDesktop.addEventListener('click', togglePanel);
         btnMobile.addEventListener('click', togglePanel);
 
+        // ป้องกันการลากเพื่อเลื่อนหน้าจอของเบราว์เซอร์ (เพื่อไม่ให้ขัดจังหวะการหมุน 3D บนมือถือ)
+        canvas.style.touchAction = 'none';
+
         canvas.addEventListener('wheel', (event) => {
             const scrollSpeed = 0.05;
             controls.target.y -= event.deltaY * scrollSpeed;
             camera.position.y -= event.deltaY * scrollSpeed;
         }, { passive: true });
 
-        let touchStartY = 0;
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-
-        canvas.addEventListener('touchmove', (e) => {
-            if(e.touches.length === 1) { 
-                const touchY = e.touches[0].clientY;
-                const deltaY = touchStartY - touchY;
-                const swipeSpeed = 0.08;
-                
-                controls.target.y -= deltaY * swipeSpeed;
-                camera.position.y -= deltaY * swipeSpeed;
-                
-                touchStartY = touchY; 
+        // รวมการควบคุมลากเมาส์และสัมผัสจอ (Pointer Events)
+        canvas.addEventListener('pointerdown', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            // ตรวจสอบว่าคลิก/แตะ โดนโครโมโซมหรือไม่ (ตรวจสอบลึกถึงชิ้นส่วนย่อย)
+            const intersects = raycaster.intersectObject(chrGroup, true);
+            
+            if (intersects.length > 0) {
+                isDraggingChromosome = true; // ลากเพื่อหมุนโครโมโซม
+            } else {
+                isDraggingDNA = true; // ลากเพื่อเลื่อนสาย DNA
             }
-        }, { passive: true });
+            previousPointer = { x: e.clientX, y: e.clientY };
+            canvas.setPointerCapture(e.pointerId);
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isDraggingChromosome && !isDraggingDNA) return;
+
+            const deltaX = e.clientX - previousPointer.x;
+            const deltaY = e.clientY - previousPointer.y;
+            
+            if (isDraggingChromosome) {
+                // หมุนโครโมโซมอย่างอิสระทั้งแกน X และ Y
+                chrGroup.rotation.y += deltaX * 0.015;
+                chrGroup.rotation.x += deltaY * 0.015;
+            } else if (isDraggingDNA) {
+                // เลื่อนหน้าจอสาย DNA ขึ้น/ลง
+                const swipeSpeed = 0.08;
+                controls.target.y += deltaY * swipeSpeed;
+                camera.position.y += deltaY * swipeSpeed;
+            }
+            previousPointer = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener('pointerup', (e) => {
+            isDraggingChromosome = false;
+            isDraggingDNA = false;
+            canvas.releasePointerCapture(e.pointerId);
+        });
+        
+        canvas.addEventListener('pointercancel', (e) => {
+            isDraggingChromosome = false;
+            isDraggingDNA = false;
+            canvas.releasePointerCapture(e.pointerId);
+        });
 
         const clock = new THREE.Clock();
 
