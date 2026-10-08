@@ -1,895 +1,941 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Chromosome & DNA Eukaryotic Structure Explorer (Pro Max)</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<style>
-  :root {
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.5);
-  }
-  
-  body {
-    font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: #f8fafc;
-    color: #0f172a;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden;
-  }
-
-  .glass-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-  }
-
-  .stage-box {
-    background: radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%);
-    border-radius: 1.5rem;
-    position: relative;
-    overflow: hidden;
-    touch-action: none;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px -10px rgba(0, 0, 0, 0.1);
-  }
-  
-  #chr3dCanvas, #threeDnaCanvas, #pack3dCanvas {
-    width: 100%;
-    display: block;
-    cursor: grab;
-    touch-action: none;
-    outline: none;
-  }
-  
-  #chr3dCanvas:active, #threeDnaCanvas:active, #pack3dCanvas:active { 
-    cursor: grabbing; 
-  }
-  
-  #threeDnaCanvas {
-    height: 450px;
-    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-    border-radius: 1rem;
-  }
-
-  .nuclear-membrane {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 380px;
-    height: 380px;
-    border-radius: 50%;
-    border: 4px dashed rgba(129, 140, 248, 0.5);
-    background: radial-gradient(circle, rgba(238, 242, 255, 0.1) 0%, rgba(224, 231, 255, 0.4) 100%);
-    pointer-events: none;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 1.5rem;
-    box-shadow: inset 0 0 60px rgba(129, 140, 248, 0.15);
-    z-index: 5;
-    transition: all 0.5s ease;
-  }
-
-  .label-box {
-    position: absolute;
-    background: rgba(15, 23, 42, 0.85);
-    color: #f8fafc;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.15);
-    white-space: nowrap;
-    z-index: 30;
-    opacity: 0;
-    transition: opacity 0.4s ease, transform 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-  
-  .label-box.visible { opacity: 1; }
-
-  @media (max-width: 768px) {
-    .nuclear-membrane { width: 300px; height: 300px; border-width: 3px; }
-    #threeDnaCanvas { height: 350px; }
-  }
-
-  /* Custom scrollbar for panel */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-</style>
-</head>
-<body class="min-h-screen flex flex-col items-center p-4 md:p-8 pb-24">
-
-<header class="w-full max-w-5xl mb-8 text-center animate-fade-in-down">
-  <div class="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 font-bold px-4 py-1.5 rounded-full text-xs mb-4 shadow-sm border border-indigo-200 uppercase tracking-wider">
-    <span class="relative flex h-2.5 w-2.5">
-      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
-    </span>
-    Interactive 3D Pro
-  </div>
-  <h1 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight flex items-center justify-center gap-3 mb-3">
-    โครงสร้างโครโมโซมและ DNA
-  </h1>
-  <p class="text-slate-500 text-sm md:text-lg font-medium max-w-2xl mx-auto">
-    หมุน 360° และแตะ (Tap) ที่แท่งโครโมโซม 3 มิติ เพื่อเจาะลึกโครงสร้างระดับนิวคลีโซมและตำแหน่งยีน
-  </p>
-</header>
-
-<main class="w-full max-w-5xl flex-grow flex flex-col gap-6 relative">
-  
-  <div class="glass-panel p-3 rounded-2xl flex flex-wrap gap-3 justify-center items-center z-10 relative mx-auto">
-    <button id="splitBtn" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-200 font-semibold px-6 py-3 rounded-xl text-sm transition-all shadow-sm flex items-center gap-2 transform active:scale-95 hover:shadow-md">
-      <span class="text-lg">↔️</span> แยกโครมาทิด (Split)
-    </button>
-    <button id="joinBtn" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-200 font-semibold px-6 py-3 rounded-xl text-sm transition-all shadow-sm flex items-center gap-2 transform active:scale-95 hover:shadow-md">
-      <span class="text-lg">🫂</span> รวมโครมาทิด (Join)
-    </button>
-  </div>
-
-  <div id="view-chromosome" class="flex flex-col flex-grow gap-4 w-full">
-    <div id="stage" class="stage-box w-full h-[550px]">
-      
-      <div class="nuclear-membrane">
-        <span class="text-xs font-bold text-indigo-700 bg-white/95 px-5 py-2 rounded-full shadow-sm border border-indigo-100 backdrop-blur-md uppercase tracking-wide">
-          Nuclear Membrane
-        </span>
-      </div>
-
-      <canvas id="chr3dCanvas" class="absolute inset-0 w-full h-full z-10"></canvas>
-      
-      <div class="absolute bottom-6 left-0 w-full text-center pointer-events-none z-20">
-        <span class="bg-white/80 backdrop-blur-md text-slate-600 font-semibold text-xs md:text-sm px-6 py-3 rounded-full shadow-lg border border-slate-200/50 inline-block">
-          👆 ลากนิ้วเพื่อหมุน | <b>แตะที่โครโมโซมเพื่อเข้าสู่โหมดเจาะลึก</b>
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <div id="dnaZoomPanel" class="hidden glass-panel p-4 md:p-8 rounded-[2rem] flex flex-col gap-8 transition-all duration-700 transform translate-y-8 opacity-0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenoDash 3D - Genomic Analytics</title>
     
-    <div class="flex justify-between items-start border-b pb-5 border-slate-200">
-      <div class="flex items-center gap-4">
-        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl text-2xl shadow-lg text-white">🔬</div>
-        <div>
-          <h2 id="dnaPanelTitle" class="text-xl md:text-2xl font-extrabold text-slate-800">มุมมองเจาะลึก 3 มิติ</h2>
-          <p class="text-sm text-slate-500 font-medium mt-1">โครงสร้างการขดตัวระดับนิวคลีโซม และ ตำแหน่งยีนบน DNA</p>
-        </div>
-      </div>
-      <button onclick="closeDNAPanel()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm border border-rose-200 hover:shadow-md active:scale-95 flex items-center gap-2">
-        <span>ปิด</span> <span class="text-lg">✕</span>
-      </button>
-    </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- 3D Nucleosome Module -->
-    <div class="bg-slate-900 rounded-3xl p-5 md:p-6 relative overflow-hidden shadow-2xl flex flex-col gap-4">
-      <div class="flex justify-between items-center z-10 relative">
-        <h4 class="text-xs font-bold uppercase tracking-widest text-indigo-300 flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.8)]"></span> 
-          Interactive 3D Model: Nucleosome
-        </h4>
-      </div>
-      
-      <div class="relative w-full h-[400px] bg-slate-950/50 rounded-2xl border border-slate-700/50 flex items-center justify-center overflow-hidden">
-        <canvas id="pack3dCanvas" class="w-full h-full absolute inset-0 z-10"></canvas>
-        <svg id="leaderLines" class="absolute inset-0 w-full h-full pointer-events-none z-20"></svg>
-        
-        <div id="lbl-core" class="label-box border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.3)]">แกนฮิสโตน (Histone Octamer)</div>
-        <div id="lbl-dna" class="label-box border-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.3)]">DNA พันรอบ ~1.7 รอบ</div>
-        <div id="lbl-linker" class="label-box border-cyan-400/50 shadow-[0_0_15px_rgba(34,211,238,0.3)]">Linker DNA</div>
-        <div id="lbl-tail" class="label-box border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.3)]">Histone Tails</div>
-      </div>
-      <p class="text-xs text-slate-400 text-center relative z-10 font-medium">ภาพจำลองแสดงสาย DNA พันรอบโปรตีนฮิสโตน 8 โมเลกุล พร้อมส่วนหางและสายเชื่อมต่อ (ลากเพื่อหมุน)</p>
-    </div>
-
-    <!-- 3D DNA Double Helix Module -->
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-700 flex items-center gap-2">
-          <span class="text-xl">🧬</span> เกลียวคู่ DNA และตำแหน่งยีน
-        </h3>
-        <div class="flex flex-wrap items-center gap-2 text-sm" id="geneSelectorBtns">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-      
-      <div class="relative rounded-3xl shadow-2xl border border-slate-700 overflow-hidden bg-slate-900">
-        <canvas id="threeDnaCanvas"></canvas>
-        <div id="dna3dTooltip" class="absolute top-5 left-5 bg-white/95 backdrop-blur text-slate-800 px-5 py-3 rounded-2xl text-sm font-bold shadow-2xl pointer-events-none transition-all duration-300 opacity-0 transform translate-y-2 border border-slate-200 z-30">
-          กำลังโหลดข้อมูล...
-        </div>
-      </div>
-    </div>
-
-    <!-- Gene Data Panel -->
-    <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 shadow-inner">
-      <h3 class="text-sm font-bold uppercase tracking-widest text-indigo-600 mb-5 flex items-center gap-2">
-        <span>📋</span> ข้อมูลยีน (Gene Locus Details)
-      </h3>
-      <div id="geneLocusList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Dynamically populated -->
-      </div>
-    </div>
-  </div>
-
-</main>
-
-<script>
-(() => {
-  "use strict";
-
-  // --- Application State & Data ---
-  const chromosomeData = { 
-    id: 'chr1', 
-    name: 'โครโมโซมคู่ที่ 1 (Chromosome 1)', 
-    genes: [
-      { id: 'gene1', name: 'Gene A1 (Insulin)', func: 'ควบคุมการสร้างอินซูลิน', code: 'TAC-GGC-TTA', startIdx: 6, endIdx: 12, color: 0xf59e0b },
-      { id: 'gene2', name: 'Gene A2 (Amylase)', func: 'ควบคุมเอนไซม์ย่อยแป้ง', code: 'ATG-CCG-AAT', startIdx: 18, endIdx: 24, color: 0x10b981 }
-    ]
-  };
-
-  // 3D Environment Variables
-  let chrScene, chrCamera, chrRenderer, chrGroup;
-  let chromatidL, chromatidR;
-  let chrAnimId, isChrSplit = false, splitValue = 0;
-
-  let packScene, packCamera, packRenderer, packGroup;
-  let packAnimId;
-  let annotationData = [];
-
-  let threeScene, threeCamera, threeRenderer, threeHelixGroup, threeAnimId;
-  let activeGeneHighlight = null;
-  let basePairMeshes = [];
-  let geneCylinderMeshes = [];
-
-  // DOM Elements
-  const splitBtn = document.getElementById('splitBtn');
-  const joinBtn = document.getElementById('joinBtn');
-  const chrCanvas = document.getElementById('chr3dCanvas');
-  const chrContainer = document.getElementById('stage');
-
-  function initChromosome3D() {
-    try {
-      const width = chrContainer.clientWidth;
-      const height = chrContainer.clientHeight;
-
-      chrScene = new THREE.Scene();
-      
-      chrCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      chrCamera.position.set(0, 0, 48);
-
-      chrRenderer = new THREE.WebGLRenderer({ canvas: chrCanvas, antialias: true, alpha: true });
-      chrRenderer.setSize(width, height);
-      chrRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      // Enhanced Lighting setup
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
-      chrScene.add(ambLight);
-      
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-      dirLight.position.set(15, 25, 30);
-      chrScene.add(dirLight);
-      
-      const fillLight = new THREE.DirectionalLight(0xe0e7ff, 0.4);
-      fillLight.position.set(-15, -15, -20);
-      chrScene.add(fillLight);
-
-      chrGroup = new THREE.Group();
-      chrScene.add(chrGroup);
-
-      buildChromosomeModel();
-      setupChromosomeInteractions();
-      
-      window.addEventListener('resize', handleResizeChr);
-      animateChromosome();
-
-    } catch (error) {
-      console.error("Error initializing Chromosome 3D:", error);
-    }
-  }
-
-  function buildChromosomeModel() {
-    // Beautiful materials
-    const bodyMat = new THREE.MeshPhysicalMaterial({ 
-      color: 0x3b82f6, 
-      roughness: 0.4,
-      metalness: 0.1,
-      clearcoat: 0.3,
-      clearcoatRoughness: 0.2
-    });
-    
-    const bandMat = new THREE.MeshPhysicalMaterial({ 
-      color: 0x1e3a8a, 
-      roughness: 0.5 
-    });
-    
-    const centroMat = new THREE.MeshPhysicalMaterial({ 
-      color: 0xf8fafc, 
-      roughness: 0.2,
-      transmission: 0.5,
-      thickness: 1.0
-    });
-    
-    const centroCoreMat = new THREE.MeshPhongMaterial({ color: 0x334155 });
-
-    // Custom Capsule generator
-    function createCapsule(radius, length, mat) {
-      const capGroup = new THREE.Group();
-      const cyl = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 32), mat);
-      
-      const topSphere = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 16), mat);
-      topSphere.position.y = length / 2;
-      
-      const botSphere = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 16), mat);
-      botSphere.position.y = -length / 2;
-      
-      capGroup.add(cyl);
-      capGroup.add(topSphere);
-      capGroup.add(botSphere);
-      return capGroup;
-    }
-    
-    // Left Chromatid
-    chromatidL = new THREE.Group();
-    const meshL = createCapsule(1.9, 15, bodyMat);
-    chromatidL.add(meshL);
-    addBands(chromatidL, bandMat);
-    chromatidL.rotation.z = -0.15;
-    chrGroup.add(chromatidL);
-
-    // Right Chromatid
-    chromatidR = new THREE.Group();
-    const meshR = createCapsule(1.9, 15, bodyMat);
-    chromatidR.add(meshR);
-    addBands(chromatidR, bandMat);
-    chromatidR.rotation.z = 0.15;
-    chrGroup.add(chromatidR);
-
-    // Centromere (Kinetochore area)
-    const centroGroup = new THREE.Group();
-    const cGeo = new THREE.CylinderGeometry(2.4, 2.4, 0.9, 32);
-    const cMesh = new THREE.Mesh(cGeo, centroMat);
-    cMesh.rotation.x = Math.PI / 2;
-    
-    const cCoreGeo = new THREE.CylinderGeometry(1.2, 1.2, 1.0, 32);
-    const cCoreMesh = new THREE.Mesh(cCoreGeo, centroCoreMat);
-    cCoreMesh.rotation.x = Math.PI / 2;
-    
-    centroGroup.add(cMesh);
-    centroGroup.add(cCoreMesh);
-    centroGroup.position.z = 1.6;
-    chrGroup.add(centroGroup);
-  }
-
-  function addBands(group, material) {
-    const bandGeo = new THREE.CylinderGeometry(1.95, 1.95, 1.2, 32);
-    const bandPos = [4.8, 1.6, -3.2, -6.5];
-    bandPos.forEach(y => {
-      const b = new THREE.Mesh(bandGeo, material);
-      b.position.y = y;
-      group.add(b);
-    });
-  }
-
-  function setupChromosomeInteractions() {
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-    let ptrDownPos = {x: 0, y: 0};
-    let isDraggingChr = false;
-
-    // Split/Join Controls
-    splitBtn.addEventListener('click', () => isChrSplit = true);
-    joinBtn.addEventListener('click', () => isChrSplit = false);
-
-    chrCanvas.addEventListener('pointerdown', (e) => {
-      isDraggingChr = false;
-      ptrDownPos = {x: e.clientX, y: e.clientY};
-    });
-
-    window.addEventListener('pointermove', (e) => {
-      if (!chrGroup) return;
-      if (e.buttons > 0 && e.target === chrCanvas) {
-        const deltaX = e.clientX - ptrDownPos.x;
-        const deltaY = e.clientY - ptrDownPos.y;
-        if (Math.hypot(deltaX, deltaY) > 4) isDraggingChr = true;
-        
-        // Smooth rotation
-        chrGroup.rotation.y += deltaX * 0.008;
-        chrGroup.rotation.x += deltaY * 0.008;
-        ptrDownPos = {x: e.clientX, y: e.clientY};
-      }
-    });
-
-    chrCanvas.addEventListener('pointerup', (e) => {
-      if (!isDraggingChr) {
-        const rect = chrCanvas.getBoundingClientRect();
-        pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-        raycaster.setFromCamera(pointer, chrCamera);
-        const intersects = raycaster.intersectObjects(chrGroup.children, true);
-        
-        if (intersects.length > 0) {
-          window.openDNAPanel(chromosomeData);
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e0f2fe 100%); /* ธีมฟ้า-ขาวสว่าง */
+            margin: 0;
+            overflow: hidden; 
+            color: #0f172a; /* ข้อความสีเข้ม */
         }
-      }
-    });
-  }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 10px;
+        }
 
-  function handleResizeChr() {
-    if(chrCamera && chrRenderer && chrContainer) {
-      chrCamera.aspect = chrContainer.clientWidth / chrContainer.clientHeight;
-      chrCamera.updateProjectionMatrix();
-      chrRenderer.setSize(chrContainer.clientWidth, chrContainer.clientHeight);
-    }
-  }
+        /* Light Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
 
-  function animateChromosome() {
-    chrAnimId = requestAnimationFrame(animateChromosome);
-    
-    // Idle float and rotation
-    if (chrGroup) {
-      chrGroup.rotation.y += 0.0015;
-      chrGroup.position.y = Math.sin(Date.now() * 0.002) * 0.5;
-    }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 6px rgba(15,23,42,0.05);
+            transition: all 0.3s ease;
+        }
 
-    // Split animation interpolation
-    const targetSplit = isChrSplit ? 4.5 : 0;
-    splitValue += (targetSplit - splitValue) * 0.08;
-    
-    if (chromatidL && chromatidR) {
-      chromatidL.position.x = -splitValue;
-      chromatidR.position.x = splitValue;
-      const rot = 0.15 - (splitValue * 0.015);
-      chromatidL.rotation.z = -rot;
-      chromatidR.rotation.z = rot;
-    }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+        }
 
-    chrRenderer.render(chrScene, chrCamera);
-  }
+        .sequence-ticker {
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            display: inline-block;
+            animation: ticker 20s linear infinite;
+        }
+        
+        .seq-a { color: #ef4444; } 
+        .seq-t { color: #3b82f6; } 
+        .seq-c { color: #10b981; } 
+        .seq-g { color: #f59e0b; } 
 
-  function init3DNucleosome() {
-    const canvas = document.getElementById('pack3dCanvas');
-    const container = canvas.parentElement;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
 
-    if (packScene) {
-      // Handle resize if already initialized
-      packRenderer.setSize(width, height);
-      packCamera.aspect = width / height;
-      packCamera.updateProjectionMatrix();
-      return; 
-    }
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            50% { opacity: .7; transform: scale(1.2); box-shadow: 0 0 10px 3px rgba(34, 197, 94, 0); }
+        }
 
-    packScene = new THREE.Scene();
-    packCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    packCamera.position.set(0, 0, 16);
+        /* เพิ่มคลาสสำหรับซ่อน Scrollbar แต่ยังเลื่อนได้ */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen w-screen relative">
 
-    packRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    packRenderer.setSize(width, height);
-    packRenderer.setPixelRatio(window.devicePixelRatio);
+    <canvas id="three-canvas" class="absolute inset-0 z-0 w-full h-full cursor-move"></canvas>
 
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.8);
-    packScene.add(ambLight);
-    const ptLight = new THREE.PointLight(0xffffff, 1.2);
-    ptLight.position.set(10, 15, 20);
-    packScene.add(ptLight);
+    <div class="absolute inset-0 z-10 p-3 md:p-5 flex flex-col justify-between pointer-events-none h-full">
+        
+        <!-- โซนด้านบน: Header + Data Panel -->
+        <div class="w-full flex flex-col gap-3 relative z-50 pointer-events-none max-w-6xl mx-auto">
+            
+            <!-- TOP HEADER -->
+            <header class="glass-panel rounded-2xl p-3 flex flex-col md:flex-row justify-between items-center pointer-events-auto gap-3 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div class="flex items-center justify-between w-full md:w-auto">
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border border-blue-400 flex items-center justify-center text-white shadow-md">
+                            <i class="fa-solid fa-dna text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600 tracking-tight">GenoDash 3D</h1>
+                            <p class="text-[9px] md:text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-check-circle text-emerald-500"></i> <span class="text-emerald-600">อ้างอิง NCBI / ClinVar</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Toggle Button -->
+                    <button id="btn-toggle-mobile" class="md:hidden bg-blue-50 text-blue-700 px-3 py-2 rounded-xl text-xs font-bold border border-blue-200 active:bg-blue-100 shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> ข้อมูล
+                    </button>
+                </div>
+                
+                <div class="relative w-full md:flex-1 md:max-w-lg mx-auto">
+                    <select id="sample-selector" class="w-full bg-white/90 backdrop-blur-md border border-slate-300 text-slate-800 text-[11px] md:text-sm font-bold rounded-xl focus:ring-blue-500 focus:border-blue-500 block pl-4 pr-8 py-2.5 outline-none transition-all hover:border-blue-400 cursor-pointer appearance-none shadow-sm">
+                        <option value="hbb_normal">1. โครงสร้าง DNA ปกติ (ยีน HBB อ้างอิง)</option>
+                        <option value="hbb_sickle">2. โรคโลหิตจางเม็ดเลือดแดงรูปเคียว (HBB)</option>
+                        <option value="cftr_mut">3. โรคซิสติกไฟโบรซิส (CFTR)</option>
+                        <option value="fgfr3_mut">4. โรคกระดูกอ่อนเตี้ยแคระ (FGFR3)</option>
+                        <option value="pah_mut">5. โรคฟีนิลคีโตนูเรีย PKU (PAH)</option>
+                        <option value="hfe_mut">6. โรคภาวะธาตุเหล็กเกิน (HFE)</option>
+                        <option value="nf1_mut">7. โรคท้าวแสนปม (NF1)</option>
+                        <option value="ldlr_mut">8. คอเลสเตอรอลสูงทางพันธุกรรม (LDLR)</option>
+                        <option value="smn1_mut">9. โรคกล้ามเนื้ออ่อนแรง SMA (SMN1)</option>
+                        <option value="braf_mut">10. มะเร็งเมลาโนมา (BRAF V600E)</option>
+                        <option value="fbn1_mut">11. กลุ่มอาการมาร์ฟาน (FBN1)</option>
+                        <option value="f8_mut">12. โรคเลือดไหลไม่หยุด ฮีโมฟีเลีย (F8)</option>
+                        <option value="hexa_mut">13. โรคเทย์-แซกส์ (HEXA)</option>
+                        <option value="serpina1_mut">14. ภาวะพร่องเอนไซม์ Alpha-1 (SERPINA1)</option>
+                        <option value="galt_mut">15. โรคแพ้น้ำตาลนม กาแลคโตซีเมีย (GALT)</option>
+                        <option value="dmd_mut">16. โรคกล้ามเนื้อเสื่อมดูเชน (DMD)</option>
+                        <option value="atp7b_mut">17. โรควิลสัน ทองแดงสะสม (ATP7B)</option>
+                        <option value="gba_mut">18. โรคโกเชร์ ไขมันสะสม (GBA)</option>
+                        <option value="tyr_mut">19. ภาวะผิวเผือก (TYR)</option>
+                        <option value="opn1lw_mut">20. โรคตาบอดสีแดง-เขียว (OPN1LW)</option>
+                        <option value="tp53_mut">21. มะเร็งทั่วไป / ลำไส้ใหญ่ (ยีน TP53)</option>
+                        <option value="egfr_mut">22. มะเร็งปอดชนิดเซลล์ไม่เล็ก (EGFR)</option>
+                        <option value="brca1_mut">23. มะเร็งเต้านมและรังไข่ (BRCA1)</option>
+                        <option value="pik3ca_mut">24. มะเร็งทางเดินอาหาร/เต้านม (PIK3CA)</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                    </div>
+                </div>
 
-    packGroup = new THREE.Group();
-    packScene.add(packGroup);
+                <!-- Desktop Toggle Button -->
+                <div class="hidden md:flex items-center gap-4 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></div>
+                        <span class="text-[11px] font-semibold text-slate-600">เรียลไทม์</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-300"></div>
+                    <button id="btn-toggle-desktop" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 min-w-[120px] justify-center">
+                        <i class="fa-solid fa-eye-slash" id="toggle-icon"></i> <span id="toggle-text">ซ่อนข้อมูล</span>
+                    </button>
+                </div>
+            </header>
 
-    buildNucleosomeModel();
-    setupNucleosomeInteractions(canvas);
-    animatePack();
-    
-    // Show labels progressively
-    setTimeout(() => {
-      annotationData.forEach(a => a.labelEl.classList.add('visible'));
-    }, 600);
-  }
+            <!-- DATA PANEL (กล่องข้อมูลด้านบน) -->
+            <div id="data-panel" class="pointer-events-auto transition-all duration-300 origin-top opacity-100 transform scale-y-100 max-h-[60vh] overflow-y-auto hide-scroll">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    
+                    <!-- 1. รายละเอียด -->
+                    <div class="glass-card rounded-xl p-4 border-blue-200 bg-white/90 lg:col-span-2 shadow-sm flex flex-col justify-center min-h-[90px]">
+                        <label class="text-[10px] md:text-xs font-bold text-blue-600 uppercase tracking-wider mb-2 block"><i class="fa-solid fa-circle-info mr-1"></i> รายละเอียดทางพันธุกรรม</label>
+                        <p id="sample-desc" class="text-[11px] md:text-xs text-slate-700 leading-relaxed font-medium">กำลังโหลดข้อมูล...</p>
+                    </div>
 
-  function buildNucleosomeModel() {
-    // 1. Histone Core (Octamer)
-    const coreMat = new THREE.MeshPhongMaterial({ color: 0xec4899, shininess: 90 });
-    const sphereGeo = new THREE.SphereGeometry(1.0, 32, 32);
-    const octPositions = [
-      [-0.85, 0.85, -0.5], [0.85, 0.85, -0.5], [-0.85, -0.85, -0.5], [0.85, -0.85, -0.5],
-      [-0.65, 0.65, 0.6], [0.65, 0.65, 0.6], [-0.65, -0.65, 0.6], [0.65, -0.65, 0.6]
-    ];
-    
-    const coreGroup = new THREE.Group();
-    octPositions.forEach(p => {
-      const mesh = new THREE.Mesh(sphereGeo, coreMat);
-      mesh.position.set(p[0], p[1], p[2]);
-      coreGroup.add(mesh);
-    });
-    packGroup.add(coreGroup);
+                    <!-- 2. โครโมโซม -->
+                    <div class="glass-card rounded-xl p-3 md:p-4 border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-sm flex flex-col justify-between min-h-[90px]">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] md:text-[11px] font-bold text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-dna text-blue-500 mr-1"></i> โครโมโซม</span>
+                            <span id="chr-number" class="bg-blue-100 text-blue-700 border border-blue-200 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold">...</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-auto pt-2">
+                            <span class="text-[10px] text-slate-500">พิกัด (Locus):</span>
+                            <span id="chr-locus" class="text-[11px] md:text-xs font-black text-slate-800 font-mono bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">...</span>
+                        </div>
+                    </div>
 
-    // 2. DNA Wrap (Blue Tube via CatmullRom)
-    const dnaCurvePts = [];
-    const loops = 1.7;
-    const ptsCount = 120;
-    for (let i = 0; i <= ptsCount; i++) {
-      const t = i / ptsCount;
-      const angle = t * Math.PI * 2 * loops - Math.PI * 0.8;
-      const r = 2.2;
-      dnaCurvePts.push(new THREE.Vector3(Math.cos(angle) * r, (t - 0.5) * 1.9, Math.sin(angle) * r));
-    }
-    const dnaCurve = new THREE.CatmullRomCurve3(dnaCurvePts);
-    const dnaGeo = new THREE.TubeGeometry(dnaCurve, 120, 0.28, 16, false);
-    const dnaMat = new THREE.MeshPhongMaterial({ color: 0x3b82f6, shininess: 100 });
-    const dnaMesh = new THREE.Mesh(dnaGeo, dnaMat);
-    packGroup.add(dnaMesh);
+                    <!-- 3. จุดกลายพันธุ์ -->
+                    <div id="mutation-card" class="glass-card rounded-xl p-3 md:p-4 border-red-200 bg-red-50/95 hidden transition-all shadow-md flex-col justify-between min-h-[90px]">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] md:text-[11px] font-bold text-red-600 uppercase tracking-wider"><i class="fa-solid fa-crosshairs mr-1 animate-pulse"></i> จุดกลายพันธุ์</span>
+                            <span id="mut-position" class="bg-white text-red-600 border border-red-200 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">...</span>
+                        </div>
+                        <div class="flex items-center justify-around bg-white/80 rounded-lg p-1.5 border border-red-100 mt-auto">
+                            <div class="text-center">
+                                <div class="text-[8px] font-bold text-slate-500 uppercase">ปกติ</div>
+                                <div id="mut-normal" class="text-base font-black text-emerald-500">A</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right-long text-red-500 text-sm animate-pulse"></i>
+                            <div class="text-center">
+                                <div class="text-[8px] font-bold text-slate-500 uppercase">พบจริง</div>
+                                <div id="mut-mutated" class="text-base font-black text-red-500">T</div>
+                            </div>
+                        </div>
+                    </div>
 
-    // 3. Linker DNA
-    const linkCurve = new THREE.CatmullRomCurve3([
-      dnaCurvePts[0], new THREE.Vector3(-4, -1.6, 0), new THREE.Vector3(-6.5, -1.2, 1)
-    ]);
-    const linkGeo = new THREE.TubeGeometry(linkCurve, 40, 0.28, 16, false);
-    const linkMesh = new THREE.Mesh(linkGeo, dnaMat);
-    packGroup.add(linkMesh);
+                    <!-- 4. ความสมบูรณ์ (จะแสดงแทนช่องที่ 4 หากไม่มีช่องกลายพันธุ์) -->
+                    <div id="integrity-card" class="glass-card rounded-xl p-3 md:p-4 shadow-sm flex flex-col justify-center min-h-[90px] bg-white/90">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">ความสมบูรณ์</span>
+                            <i id="integrity-icon" class="fa-solid fa-shield-halved text-emerald-500"></i>
+                        </div>
+                        <div id="integrity-score" class="text-xl md:text-2xl font-black text-slate-800 leading-none">100%</div>
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full mt-3 overflow-hidden">
+                            <div id="integrity-bar" class="bg-gradient-to-r from-emerald-400 to-emerald-500 w-full h-full rounded-full transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    // 4. Histone Tails (Wiggly yellow tubes)
-    const tailMat = new THREE.MeshPhongMaterial({ color: 0xfacc15 });
-    const tailCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 1.2, 0.6), new THREE.Vector3(1.2, 3.2, 1.5), new THREE.Vector3(0.5, 4.5, 2.5)
-    ]);
-    const tailGeo = new THREE.TubeGeometry(tailCurve, 20, 0.12, 8, false);
-    const tailMesh = new THREE.Mesh(tailGeo, tailMat);
-    packGroup.add(tailMesh);
+        <!-- Footer Ticker -->
+        <footer class="glass-panel rounded-2xl overflow-hidden pointer-events-auto flex items-center h-10 md:h-12 relative shrink-0 mt-auto max-w-6xl mx-auto w-full shadow-[0_-4px_20px_rgb(0,0,0,0.03)]">
+            <div class="bg-blue-50/90 border-r border-blue-100 h-full px-3 md:px-5 flex items-center justify-center z-10 shrink-0 backdrop-blur-md">
+                <span class="text-blue-700 text-[9px] md:text-[10px] font-bold tracking-widest uppercase"><i class="fa-solid fa-satellite-dish mr-2 animate-pulse"></i> ลำดับพันธุกรรม</span>
+            </div>
+            <div class="flex-1 overflow-hidden relative h-full flex items-center bg-white/60 backdrop-blur-sm">
+                <div class="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white/80 to-transparent z-10"></div>
+                <div class="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/80 to-transparent z-10"></div>
+                <div class="sequence-ticker text-[11px] md:text-sm tracking-[0.25em] font-bold text-slate-700" id="sequence-container">
+                    <!-- Javascript populates -->
+                </div>
+            </div>
+        </footer>
+    </div>
 
-    // Annotation Anchors mapping to 3D space
-    annotationData = [
-      { id: 'core', pos: new THREE.Vector3(0, 0, 0), labelEl: document.getElementById('lbl-core'), offset: {x: 130, y: -90} },
-      { id: 'dna', pos: new THREE.Vector3(2.2, 0, 0), labelEl: document.getElementById('lbl-dna'), offset: {x: 150, y: 50} },
-      { id: 'linker', pos: new THREE.Vector3(-4.0, -1.4, 0), labelEl: document.getElementById('lbl-linker'), offset: {x: -130, y: 70} },
-      { id: 'tail', pos: new THREE.Vector3(0.8, 3.8, 1.8), labelEl: document.getElementById('lbl-tail'), offset: {x: -110, y: -90} }
-    ];
-    
-    // Initial angle
-    packGroup.rotation.y = -0.5;
-    packGroup.rotation.x = 0.2;
-  }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-  function setupNucleosomeInteractions(canvas) {
-    let isDrag = false, pX = 0, pY = 0;
-    
-    canvas.addEventListener('pointerdown', e => { 
-      isDrag = true; pX = e.clientX; pY = e.clientY; 
-      canvas.setPointerCapture(e.pointerId);
-    });
-    
-    canvas.addEventListener('pointermove', e => {
-      if(!isDrag) return;
-      packGroup.rotation.y += (e.clientX - pX) * 0.008;
-      packGroup.rotation.x += (e.clientY - pY) * 0.008;
-      pX = e.clientX; pY = e.clientY;
-    });
-    
-    canvas.addEventListener('pointerup', e => {
-      isDrag = false;
-      canvas.releasePointerCapture(e.pointerId);
-    });
-  }
+    <script>
+        const genomicData = {
+            hbb_normal: {
+                id: "HBB-WT", integrity: 100,
+                desc: "ยีน HBB (Hemoglobin Beta) ลำดับเบสอ้างอิงจาก NCBI มีความสมบูรณ์ ถอดรหัสเป็นกรดกลูตามิก (Glu) ที่ตำแหน่ง 6 อย่างถูกต้อง",
+                seq: "ATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGTTGGTATCAAGGTTACAAGACAGGTTTAAGGAGACCAATAGAAACTGGGCATGTGGAGACAGAGAAG",
+                mutationIdx: -1, normalBase: null, mutatedBase: null, displayPos: ""
+            },
+            hbb_sickle: {
+                id: "HBB-SCA", integrity: 65,
+                desc: "โรคโลหิตจางเม็ดเลือดแดงรูปเคียว: พบการกลายพันธุ์ Point Mutation แบบ Transversion (A > T) ส่งผลให้กรดกลูตามิกเปลี่ยนเป็นวาลีน (Glu6Val)",
+                seq: "ATGGTGCACCTGACTCCTGTGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGTTGGTATCAAGGTTACAAGACAGGTTTAAGGAGACCAATAGAAACTGGGCATGTGGAGACAGAGAAG",
+                mutationIdx: 19, normalBase: "A", mutatedBase: "T", displayPos: "c.17A>T (rs334)"
+            },
+            braf_mut: {
+                id: "BRAF-V600E", integrity: 42,
+                desc: "มะเร็งเมลาโนมา: การกลายพันธุ์ที่ Exon 15 ของยีน BRAF (T > A) เปลี่ยนวาลีนเป็นกลูตามิก (Val600Glu) ทำให้ไคเนสทำงานตลอดเวลาโดยไม่อาศัยสัญญาณกระตุ้น",
+                seq: "TGTTTTCCTTTACTTACTACACCTCAGATATATTTCTTCATGAAGACCTCACAGTAAAAATAGGTGATTTTGGTCTAGCTACAGAGAAATCTCGATGGAGTGGGTCCCATCAGTTTGAACAGTTGTCTGGATCCATTTTGTGGATGGTAAGAATTGAGGC",
+                mutationIdx: 84, normalBase: "T", mutatedBase: "A", displayPos: "c.1799T>A"
+            },
+            cftr_mut: {
+                id: "CFTR-G551D", integrity: 78,
+                desc: "โรคซิสติกไฟโบรซิส: การกลายพันธุ์ที่ Exon 11 (G > A) เปลี่ยนไกลซีนเป็นกรดแอสปาร์ติก (Gly551Asp) ส่งผลให้ช่องผ่านคลอไรด์ที่ผิวเซลล์ไม่สามารถเปิดออกได้",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1652G>A"
+            },
+            fgfr3_mut: {
+                id: "FGFR3-G1138A", integrity: 85,
+                desc: "โรคกระดูกอ่อนเตี้ยแคระ (Achondroplasia): การกลายพันธุ์ที่ยีน FGFR3 (G > A) ส่งผลให้ตัวรับสัญญาณยับยั้งการเจริญเติบโตของกระดูกทำงานมากเกินไป",
+                seq: "CTGCCCCGCCGCCGGGCGTCCTCTACTTTCACCAGGCGGCCGACATGGTGAGTCTACACGGCCCGGGGCCCCGGGGGACGGGAGCAGTCCACCGACGGCGTGCCCGGGCGACGGGACCGACCGGGATCTCCCGGCGCCGCCGCCCCCCGCACCCGCAGGG",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1138G>A"
+            },
+            pah_mut: {
+                id: "PAH-R408W", integrity: 60,
+                desc: "โรคฟีนิลคีโตนูเรีย (PKU): การกลายพันธุ์ในยีน PAH (C > T) ทำให้เอนไซม์ Phenylalanine Hydroxylase เสียสภาพ ไม่สามารถย่อยกรดอะมิโนฟีนิลอะลานีนได้",
+                seq: "CCCATGGTTATGACCTTCGGGATGATTGTACAGGGGTACTTGATGTCCAGTAGGTGCTTGTAGTTGTGCTTTTTTCCGCCTTCTGGATTCTTCTCATCCAGCAAAATGGGCTTGGGAAAGGAGTTAATGATTTGTAGCCCTGTCAGTTGATTTTGAGCAA",
+                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.1222C>T"
+            },
+            hfe_mut: {
+                id: "HFE-C282Y", integrity: 72,
+                desc: "โรคภาวะธาตุเหล็กเกิน: ยีน HFE กลายพันธุ์ (G > A) เปลี่ยนซีสเทอีนเป็นไทโรซีน (Cys282Tyr) ทำให้โปรตีนไม่สามารถควบคุมการดูดซึมธาตุเหล็กในลำไส้ได้",
+                seq: "CCTCGCTGCGGTCCCTGCTGGTGACGTCCTCCTTATACTCTCCCAAAAGTACTCGGTGATATGCTGGTTCTACGTGCATGTGGAGCCGGGCGCGGAGCCCCTGCTGAAGACGTTCCACCACGCGCGTTCTTCACTACGAGTGCCCCATTCTTACATCCAA",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.845G>A"
+            },
+            nf1_mut: {
+                id: "NF1-R1947X", integrity: 55,
+                desc: "โรคท้าวแสนปม (NF1): การเกิดรหัสหยุดก่อนกำหนด (Nonsense Mutation: C > T) ทำให้โปรตีน Neurofibromin ขาดหายไป ส่งผลให้เซลล์ประสาทแบ่งตัวผิดปกติ",
+                seq: "TAAGTGGCTTTTGCACTTAGTGCTTCATTGTAAAAGAATGCCACAAGAAGTAAAGAATGTAGATCAGAAATATACTATTGGCACTTTACAACCAGGATATAGCATCAGTGGAATTAGATTAGCAAATGAACACAAGTCAAAAATTACATTTACAGTACAA",
+                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.5839C>T"
+            },
+            ldlr_mut: {
+                id: "LDLR-F208L", integrity: 68,
+                desc: "คอเลสเตอรอลสูงทางพันธุกรรม (FH): การกลายพันธุ์ที่ยีน LDLR (C > A) ทำให้ตัวรับไขมัน LDL บนผิวเซลล์ตับทำงานผิดปกติ คอเลสเตอรอลจึงสะสมในเลือดปริมาณมาก",
+                seq: "GTGCACGACTTCCACCGGCGCAGCCGGTGCGTGGAGCTGCCGGCACCCGTAGGCAACCACATGTGCTGCTCCCTACCGTGTAGCAACGAGTTCACCTCGATCTCCATGCCCTCGGCGCGCTGCGGCCGCCGGGACCCGCACGGCCACTACTCGCAGGTAA",
+                mutationIdx: 50, normalBase: "C", mutatedBase: "A", displayPos: "c.622C>A"
+            },
+            smn1_mut: {
+                id: "SMN1-C840T", integrity: 40,
+                desc: "โรคกล้ามเนื้ออ่อนแรง (SMA): การกลายพันธุ์แบบ Silent ที่ Exon 7 (C > T) ทำให้เกิดการข้ามเอ็กซอน (Exon Skipping) โปรตีน SMN จึงสั้นและสลายตัวเร็ว",
+                seq: "CTGGACTCCAGACCTCATGGAAGAACAGTATGTGTATAAATTAAGTAATATACAAATCCTATGGAGTTCACCTACAAGTATATGCAATATTGATTCAAAGCATATTGATGTCTCGTATTGGGAAAGAACACAGAACCAAAATGCAAAAGATGATTTAAAA",
+                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.840C>T"
+            },
+            fbn1_mut: {
+                id: "FBN1-C1663R", integrity: 75,
+                desc: "กลุ่มอาการมาร์ฟาน: การกลายพันธุ์ที่ยีน FBN1 (T > C) ทำลายโครงสร้างโปรตีนไฟบริลลิน-1 ทำให้เนื้อเยื่อเกี่ยวพันอ่อนแอ เสี่ยงต่อการฉีกขาดของหลอดเลือดแดงใหญ่",
+                seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG",
+                mutationIdx: 50, normalBase: "T", mutatedBase: "C", displayPos: "c.4987T>C"
+            },
+            f8_mut: {
+                id: "F8-R1941X", integrity: 65,
+                desc: "โรคฮีโมฟีเลีย เอ: ยีน F8 บนโครโมโซม X เกิดการสร้างรหัสหยุดก่อนกำหนด (C > T) ทำให้ร่างกายขาดแฟคเตอร์ 8 อย่างรุนแรง เลือดจึงไม่สามารถแข็งตัวได้",
+                seq: "CATGGTCTAGGTCGAGTGACGCAGTGCTACGATGCTGACGTGCTACGACGTACGTGACGTGCTGACGTGCTAGCGTAGCTGACGTGCTAGCGTGACGTGCTAGCGTGACGTGCTGACGTGCTAGCGTAGCTGACGTGCTAGCGTGACGTGCTAG",
+                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.5821C>T"
+            },
+            hexa_mut: {
+                id: "HEXA-G269S", integrity: 35,
+                desc: "โรคเทย์-แซกส์: การกลายพันธุ์ระดับยีน HEXA (G > A) ทำให้เอนไซม์ Beta-hexosaminidase A เสียหาย ไขมัน GM2 ganglioside จึงสะสมทำลายเซลล์ประสาทในสมอง",
+                seq: "ACTGTGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGA",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.805G>A"
+            },
+            serpina1_mut: {
+                id: "A1AT-PiZ", integrity: 60,
+                desc: "ภาวะพร่องเอนไซม์ Alpha-1 (PiZ Allele): ยีน SERPINA1 กลายพันธุ์ (G > A) เปลี่ยนกลูตามิกเป็นไลซีน (Glu342Lys) ทำให้เอนไซม์ม้วนตัวผิดรูป สะสมทำลายตับและขาดในปอด",
+                seq: "GGCCTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGACCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGCCGGTTAAGGCCGTTGGC",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1096G>A"
+            },
+            galt_mut: {
+                id: "GALT-Q188R", integrity: 70,
+                desc: "โรคกาแลคโตซีเมีย: ยีน GALT ผิดปกติ (A > G) เปลี่ยนกลูตามีนเป็นอาร์จินีน (Gln188Arg) เอนไซม์ GALT จึงไม่ทำงาน ส่งผลให้กาแลคโตสเป็นพิษสะสมในร่างกาย",
+                seq: "TGACGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCTGATCGATCGTAGCT",
+                mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.563A>G"
+            },
+            dmd_mut: {
+                id: "DMD-R195X", integrity: 45,
+                desc: "โรคกล้ามเนื้อเสื่อมดูเชน (DMD): เกิดรหัสหยุดก่อนกำหนดในยีน DMD (C > T) ทำให้กระบวนการสร้างโปรตีนดิสโทรฟินหยุดชะงัก กล้ามเนื้อจึงถูกทำลายอย่างรุนแรงตั้งแต่วัยเด็ก",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATCCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "C", mutatedBase: "T", displayPos: "c.583C>T"
+            },
+            atp7b_mut: {
+                id: "ATP7B-H1069Q", integrity: 62,
+                desc: "โรควิลสัน: การกลายพันธุ์หลักที่ยีน ATP7B (A > C) ทำให้การทำงานของตัวขนส่งทองแดงบกพร่อง ทองแดงจึงไม่ถูกขับทิ้งและสะสมสร้างความเสียหายต่อตับและระบบประสาท",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "A", mutatedBase: "C", displayPos: "c.3207A>C"
+            },
+            gba_mut: {
+                id: "GBA-N370S", integrity: 58,
+                desc: "โรคโกเชร์ (Gaucher Disease): ยีน GBA กลายพันธุ์ (A > G) เปลี่ยนแอสพาราจีนเป็นซีรีน (Asn370Ser) เอนไซม์กลูโคซีรีโบรซิเดสจึงลดลง ไขมันสะสมในชั้นเซลล์แมคโครฟาจ",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATACAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.1226A>G"
+            },
+            tyr_mut: {
+                id: "TYR-R402Q", integrity: 80,
+                desc: "ภาวะผิวเผือก (Oculocutaneous Albinism): ยีน TYR ผิดปกติ (G > A) ทำให้เอนไซม์ไทโรซิเนสไม่สามารถสังเคราะห์เม็ดสีเมลานินได้ ผิวหนังและดวงตาจึงขาดสีสัน",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATGCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.1205G>A"
+            },
+            opn1lw_mut: {
+                id: "OPN1LW-C203R", integrity: 88,
+                desc: "โรคตาบอดสีแดง-เขียว: การกลายพันธุ์ที่ยีน OPN1LW บนโครโมโซม X (T > C) ทำลายโครงสร้างโปรตีนเซลล์รูปกรวยที่รับแสงสีแดง ทำให้การแยกแยะสีผิดเพี้ยนไปจากความจริง",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATTCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "T", mutatedBase: "C", displayPos: "c.607T>C"
+            },
+            tp53_mut: {
+                id: "TP53-R175H", integrity: 30,
+                desc: "มะเร็งหลากหลายชนิด (เช่น ลำไส้ใหญ่ เต้านม): ยีน TP53 (ผู้พิทักษ์จีโนม) กลายพันธุ์ที่ Exon 5 (G > A) เปลี่ยนอาร์จินีนเป็นฮิสทิดีน ทำให้โปรตีน p53 เสียรูปและไม่สามารถยับยั้งเซลล์มะเร็งได้",
+                seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCGCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG",
+                mutationIdx: 50, normalBase: "G", mutatedBase: "A", displayPos: "c.524G>A (rs28934578)"
+            },
+            egfr_mut: {
+                id: "EGFR-L858R", integrity: 40,
+                desc: "มะเร็งปอด (NSCLC): การกลายพันธุ์ที่ Exon 21 ของยีน EGFR (T > G) เปลี่ยนลูซีนเป็นอาร์จินีน ทำให้ตัวรับสัญญาณกระตุ้นการแบ่งตัวของเซลล์ตลอดเวลาแม้ไม่มีสัญญาณสั่งการ",
+                seq: "GGTGCCTACGGATCTAGCAGTGTCAGCGGCTACGGTGACGATGCACCTGCTCGGTACTGAACCGTAGCTAGTCGTAGGCTAGCTGACCGATGCAGTCGATGCAGTCGTAGCTAGCTGACGTGACGTGTCGTAGCTAGCTACGATGCATGCTAGCTAG",
+                mutationIdx: 50, normalBase: "T", mutatedBase: "G", displayPos: "c.2573T>G (rs121434568)"
+            },
+            brca1_mut: {
+                id: "BRCA1-C61G", integrity: 45,
+                desc: "มะเร็งเต้านมและรังไข่: ยีน BRCA1 เกิดการกลายพันธุ์ (T > G) ที่บริเวณ RING domain ทำลายความสามารถในการซ่อมแซม DNA ที่แตกหัก ทำให้ยีนอื่นกลายพันธุ์ตามได้ง่ายขึ้น",
+                seq: "TTCAGAGGGATCCAGAAACAAACTAACTTGAGGAAAATGAAAACTTGAATTCAGGCATATAGCCCAAAAACAAAGGAAAAACCAGGCACCGTTATAAAACGGGAACATGGTTGGAAGTTGAATCCTAGAAGGTGATAGAAGAATGCCTATGCACCCGG",
+                mutationIdx: 50, normalBase: "T", mutatedBase: "G", displayPos: "c.181T>G (rs28897672)"
+            },
+            pik3ca_mut: {
+                id: "PIK3CA-H1047R", integrity: 35,
+                desc: "มะเร็งเต้านมและระบบทางเดินอาหาร: การกลายพันธุ์ในยีน PIK3CA (A > G) เปลี่ยนฮิสทิดีนเป็นอาร์จินีน กระตุ้นวิถีสัญญาณ PI3K/AKT ให้เซลล์มะเร็งเจริญเติบโตและลุกลามอย่างรวดเร็ว",
+                seq: "ACTGTGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGACGTGTCGTAGCTGA",
+                mutationIdx: 50, normalBase: "A", mutatedBase: "G", displayPos: "c.3140A>G (rs121913279)"
+            }
+        };
 
-  function updateAnnotations() {
-    if(!packCamera || !packGroup || !annotationData.length) return;
-    
-    const canvas = document.getElementById('pack3dCanvas');
-    const svg = document.getElementById('leaderLines');
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    
-    let svgContent = '';
+        // เพิ่มพิกัดตำแหน่งยีนบนโครโมโซม (1.0 = ปลายแขน p ด้านบน, -1.0 = ปลายแขน q ด้านล่าง)
+        const chrPositions = {
+            hbb_normal: 0.8, hbb_sickle: 0.8, braf_mut: -0.5, cftr_mut: -0.4, fgfr3_mut: 0.9, pah_mut: -0.3, 
+            hfe_mut: 0.7, nf1_mut: -0.1, ldlr_mut: 0.8, smn1_mut: -0.6, fbn1_mut: -0.7, f8_mut: -0.9, 
+            hexa_mut: -0.5, serpina1_mut: -0.8, galt_mut: 0.5, dmd_mut: 0.6, atp7b_mut: -0.2, gba_mut: -0.4, 
+            tyr_mut: -0.3, opn1lw_mut: -0.8, tp53_mut: 0.5, egfr_mut: 0.7, brca1_mut: -0.5, pik3ca_mut: -0.8
+        };
+        
+        // ข้อมูลโครโมโซมคู่ที่ 1-22 และ X/Y พร้อมพิกัด Cytogenetic Band
+        const chrInfo = {
+            hbb_normal: { num: "11", locus: "11p15.4" }, hbb_sickle: { num: "11", locus: "11p15.4" },
+            braf_mut: { num: "7", locus: "7q34" }, cftr_mut: { num: "7", locus: "7q31.2" },
+            fgfr3_mut: { num: "4", locus: "4p16.3" }, pah_mut: { num: "12", locus: "12q23.2" },
+            hfe_mut: { num: "6", locus: "6p22.2" }, nf1_mut: { num: "17", locus: "17q11.2" },
+            ldlr_mut: { num: "19", locus: "19p13.2" }, smn1_mut: { num: "5", locus: "5q13.2" },
+            fbn1_mut: { num: "15", locus: "15q21.1" }, f8_mut: { num: "X", locus: "Xq28" },
+            hexa_mut: { num: "15", locus: "15q23" }, serpina1_mut: { num: "14", locus: "14q32.13" },
+            galt_mut: { num: "9", locus: "9p13.3" }, dmd_mut: { num: "X", locus: "Xp21.2" },
+            atp7b_mut: { num: "13", locus: "13q14.3" }, gba_mut: { num: "1", locus: "1q22" },
+            tyr_mut: { num: "11", locus: "11q14.3" }, opn1lw_mut: { num: "X", locus: "Xq28" },
+            tp53_mut: { num: "17", locus: "17p13.1" }, egfr_mut: { num: "7", locus: "7p11.2" },
+            brca1_mut: { num: "17", locus: "17q21.31" }, pik3ca_mut: { num: "3", locus: "3q26.32" }
+        };
 
-    annotationData.forEach(ann => {
-      const wp = ann.pos.clone().applyMatrix4(packGroup.matrixWorld);
-      wp.project(packCamera);
-      
-      const px = (wp.x * .5 + .5) * w;
-      const py = (-(wp.y * .5) + .5) * h;
-      
-      const lx = px + ann.offset.x;
-      const ly = py + ann.offset.y;
-      
-      ann.labelEl.style.left = `${lx}px`;
-      ann.labelEl.style.top = `${ly}px`;
-      
-      // Draw dynamic line if point is relatively in view
-      if (wp.z < 1) {
-        // Curved line for better aesthetics
-        const midX = (px + lx) / 2;
-        const midY = py; 
-        svgContent += `<path d="M ${px},${py} Q ${midX},${midY} ${lx},${ly}" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4,4" fill="none"/>`;
-        svgContent += `<circle cx="${px}" cy="${py}" r="4" fill="white" filter="drop-shadow(0 0 4px rgba(255,255,255,0.8))"/>`;
-      }
-    });
+        for(let key in genomicData) { genomicData[key].chrPos = chrPositions[key]; }
 
-    svg.innerHTML = svgContent;
-  }
+        function updateUI(sampleKey) {
+            const data = genomicData[sampleKey];
+            
+            document.getElementById('sample-desc').innerHTML = data.mutationIdx > -1 
+                ? `<span class="text-red-600 font-bold">${data.desc}</span>` 
+                : data.desc;
 
-  function animatePack() {
-    packAnimId = requestAnimationFrame(animatePack);
-    if (packGroup) {
-      packGroup.rotation.y += 0.002; // slow idle spin
-      packGroup.updateMatrixWorld();
-    }
-    packRenderer.render(packScene, packCamera);
-    updateAnnotations();
-  }
+            const mutCard = document.getElementById('mutation-card');
+            if (data.mutationIdx > -1) {
+                mutCard.classList.remove('hidden');
+                document.getElementById('mut-position').innerText = `ตำแหน่ง: ${data.displayPos}`;
+                document.getElementById('mut-normal').innerText = data.normalBase;
+                document.getElementById('mut-mutated').innerText = data.mutatedBase;
+            } else {
+                mutCard.classList.add('hidden');
+            }
 
-  function init3DHelix(chrInfo) {
-    const canvas = document.getElementById('threeDnaCanvas');
-    const container = canvas.parentElement;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    
-    basePairMeshes = [];
-    geneCylinderMeshes = [];
+            // อัปเดตข้อมูลโครโมโซมที่ค้นพบ
+            const cInfo = chrInfo[sampleKey];
+            const chrNumText = isNaN(cInfo.num) ? `โครโมโซม ${cInfo.num} (เพศ)` : `คู่ที่ ${cInfo.num} (จาก 23 คู่)`;
+            document.getElementById('chr-number').innerText = chrNumText;
+            document.getElementById('chr-locus').innerText = cInfo.locus;
 
-    if (!threeScene) {
-      threeScene = new THREE.Scene();
-      threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      threeCamera.position.set(0, 0, 26);
+            document.getElementById('integrity-score').innerText = `${data.integrity}%`;
+            document.getElementById('integrity-bar').style.width = `${data.integrity}%`;
+            
+            const icon = document.getElementById('integrity-icon');
+            const bar = document.getElementById('integrity-bar');
+            if (data.integrity === 100) {
+                icon.className = "fa-solid fa-shield-halved text-emerald-500";
+                bar.className = "bg-gradient-to-r from-emerald-400 to-emerald-500 w-full h-full rounded-full shadow-sm";
+            } else {
+                icon.className = "fa-solid fa-triangle-exclamation text-red-500 animate-pulse";
+                bar.className = "bg-gradient-to-r from-red-500 to-orange-400 w-full h-full rounded-full shadow-sm";
+            }
 
-      threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-      threeRenderer.setSize(width, height);
-      threeRenderer.setPixelRatio(window.devicePixelRatio);
+            let counts = { 'A': 0, 'T': 0, 'C': 0, 'G': 0 };
+            for(let i=0; i<data.seq.length; i++) counts[data.seq[i]]++;
+            
+            const total = data.seq.length;
+            ['A', 'T', 'C', 'G'].forEach(base => {
+                const pct = ((counts[base] / total) * 100).toFixed(1);
+                const valEl = document.getElementById(`val-${base.toLowerCase()}`);
+                const barEl = document.getElementById(`bar-${base.toLowerCase()}`);
+                // ป้องกัน Error โดยเช็คก่อนว่ามีกล่องข้อมูลนี้อยู่ในหน้าเว็บหรือไม่
+                if (valEl && barEl) {
+                    valEl.innerText = `${pct}%`;
+                    barEl.style.width = `${pct}%`;
+                }
+            });
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-      threeScene.add(ambientLight);
-      const pointLight = new THREE.PointLight(0xffffff, 1.5);
-      pointLight.position.set(15, 25, 25);
-      threeScene.add(pointLight);
-      
-      const pointLight2 = new THREE.PointLight(0x818cf8, 1);
-      pointLight2.position.set(-15, -20, 10);
-      threeScene.add(pointLight2);
+            let html = '';
+            for(let i=0; i<data.seq.length; i++) {
+                let base = data.seq[i];
+                let colorClass = `seq-${base.toLowerCase()}`;
+                if (i === data.mutationIdx) {
+                    html += `<span class="bg-red-600 text-white px-1.5 py-0.5 rounded animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.9)] font-black mx-1 border border-red-400">${base}</span>`;
+                } else {
+                    html += `<span class="${colorClass}">${base}</span>`;
+                }
+            }
+            document.getElementById('sequence-container').innerHTML = html + '&nbsp;&nbsp;&nbsp;&nbsp;' + html;
+            
+            buildDNA(data.seq, data.mutationIdx, data);
+        }
 
-      // Interactions
-      let isDrag = false, pX = 0, pY = 0;
-      canvas.addEventListener('pointerdown', e => { 
-        isDrag = true; pX = e.clientX; pY = e.clientY; 
-        canvas.setPointerCapture(e.pointerId);
-      });
-      canvas.addEventListener('pointermove', e => {
-        if(!isDrag || !threeHelixGroup) return;
-        threeHelixGroup.rotation.y += (e.clientX - pX) * 0.01;
-        threeHelixGroup.position.y += (e.clientY - pY) * -0.05; // Pan up/down
-        pX = e.clientX; pY = e.clientY;
-      });
-      canvas.addEventListener('pointerup', e => { 
-        isDrag = false; 
-        canvas.releasePointerCapture(e.pointerId);
-      });
-      
-    } else {
-      threeRenderer.setSize(width, height);
-      threeCamera.aspect = width / height;
-      threeCamera.updateProjectionMatrix();
-    }
+        const canvas = document.getElementById('three-canvas');
+        const scene = new THREE.Scene();
+        // Set to a clean, bright light blue/white
+        scene.background = new THREE.Color(0xf0f8ff);
+        scene.fog = new THREE.FogExp2(0xf0f8ff, 0.015);
 
-    if (threeHelixGroup) threeScene.remove(threeHelixGroup);
-    
-    threeHelixGroup = new THREE.Group();
-    threeScene.add(threeHelixGroup);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 45);
+        scene.add(camera); // นำกล้องเข้า scene เพื่อให้ HUD ที่ผูกกับกล้องทำงานได้
 
-    const numSteps = 40;
-    const radius = 3.5;
-    const heightSpan = 30;
+        // --- 3D CHROMOSOME HUD (มินิแมพโครโมโซมมุมซ้ายล่าง) ---
+        const chrGroup = new THREE.Group();
+        const chrMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x64748b, 
+            transparent: true, 
+            opacity: 0.25, 
+            roughness: 0.1, 
+            clearcoat: 1.0,
+            side: THREE.DoubleSide,
+            depthWrite: false // <--- ป้องกันบั๊กเรนเดอร์ภาพขาดหายเมื่อวัตถุโปร่งใสซ้อนทับกัน
+        }); // ทำให้โปร่งใส มองทะลุได้แบบกระจกโฮโลแกรม
+        
+        const centro = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), chrMat);
+        chrGroup.add(centro);
+        
+        const armGeo = new THREE.CylinderGeometry(0.2, 0.25, 1.2, 16);
+        const armGeoLong = new THREE.CylinderGeometry(0.25, 0.2, 1.8, 16);
+        const capGeo = new THREE.SphereGeometry(0.2, 16, 16);
+        const capGeoLong = new THREE.SphereGeometry(0.25, 16, 16);
 
-    // Base pair colors (AT, CG)
-    const mR = new THREE.MeshPhongMaterial({ color: 0xf43f5e }); // Red
-    const mY = new THREE.MeshPhongMaterial({ color: 0xfacc15 }); // Yellow
-    const mG = new THREE.MeshPhongMaterial({ color: 0x10b981 }); // Green
-    const mB = new THREE.MeshPhongMaterial({ color: 0x3b82f6 }); // Blue
-    const mConn = new THREE.MeshPhongMaterial({ color: 0x94a3b8 }); // Linker
+        // ฟังก์ชันสร้างสาย DNA ขดไปมา (เส้นขดเกลียวสีดำด้านใน)
+        function createCoil(length, radius, coils) {
+            const points = [];
+            const segments = 120; // ความละเอียดของเส้น
+            const extendedLength = length + 0.3; // เผื่อความยาวให้ทะลุไปถึงขั้วและแกนกลาง
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments; 
+                const y = (t - 0.5) * extendedLength; 
+                const angle = t * Math.PI * 2 * coils;
+                
+                // เพิ่ม Noise ความหยักยุ่งเหยิงนิดหน่อยให้ดูเหมือนการขดตัวของ DNA จริงๆ
+                const noise = Math.sin(t * Math.PI * 15) * 0.02;
+                
+                const x = Math.cos(angle) * (radius + noise);
+                const z = Math.sin(angle) * (radius + noise);
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            const curve = new THREE.CatmullRomCurve3(points);
+            const geo = new THREE.TubeGeometry(curve, segments, 0.012, 5, false); // เส้นเล็กๆ 
+            const mat = new THREE.MeshBasicMaterial({ color: 0x111827 }); // สีดำเข้ม (Dark Slate)
+            return new THREE.Mesh(geo, mat);
+        }
 
-    const stepPositions = [];
+        // p-arms (แขนสั้นด้านบน)
+        const p1 = new THREE.Mesh(armGeo, chrMat); p1.position.set(-0.2, 0.6, 0); p1.rotation.z = Math.PI/12; 
+        p1.add(createCoil(1.2, 0.08, 12)); // ยัดเส้นขด DNA สีดำเข้าไป
+        chrGroup.add(p1);
+        const c1 = new THREE.Mesh(capGeo, chrMat); c1.position.set(-0.35, 1.2, 0); chrGroup.add(c1);
+        
+        const p2 = new THREE.Mesh(armGeo, chrMat); p2.position.set(0.2, 0.6, 0); p2.rotation.z = -Math.PI/12; 
+        p2.add(createCoil(1.2, 0.08, 12)); // ยัดเส้นขด DNA สีดำเข้าไป
+        chrGroup.add(p2);
+        const c2 = new THREE.Mesh(capGeo, chrMat); c2.position.set(0.35, 1.2, 0); chrGroup.add(c2);
 
-    // Construct Helix
-    for (let i = 0; i < numSteps; i++) {
-      const t = i / (numSteps - 1);
-      const y = (t - 0.5) * heightSpan;
-      const angle = t * Math.PI * 8; // Rotations
+        // q-arms (แขนยาวด้านล่าง)
+        const q1 = new THREE.Mesh(armGeoLong, chrMat); q1.position.set(-0.25, -0.9, 0); q1.rotation.z = -Math.PI/12; 
+        q1.add(createCoil(1.8, 0.1, 18)); // ยัดเส้นขด DNA สีดำเข้าไป (พันรอบเยอะกว่าเพราะแขนยาว)
+        chrGroup.add(q1);
+        const cq1 = new THREE.Mesh(capGeoLong, chrMat); cq1.position.set(-0.45, -1.8, 0); chrGroup.add(cq1);
+        
+        const q2 = new THREE.Mesh(armGeoLong, chrMat); q2.position.set(0.25, -0.9, 0); q2.rotation.z = Math.PI/12; 
+        q2.add(createCoil(1.8, 0.1, 18)); // ยัดเส้นขด DNA สีดำเข้าไป
+        chrGroup.add(q2);
+        const cq2 = new THREE.Mesh(capGeoLong, chrMat); cq2.position.set(0.45, -1.8, 0); chrGroup.add(cq2);
 
-      const p1 = new THREE.Vector3(Math.cos(angle)*radius, y, Math.sin(angle)*radius);
-      const p2 = new THREE.Vector3(Math.cos(angle+Math.PI)*radius, y, Math.sin(angle+Math.PI)*radius);
-      const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-      
-      stepPositions.push({ index: i, y: y });
+        // จุดกระพริบสีแดงบอกตำแหน่ง (ปรับเป็น 2 จุด ซ้าย-ขวา ฝังในแกนกลางโครมาทิดเป๊ะๆ)
+        const indicatorMat = new THREE.MeshPhysicalMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 2 });
+        const indicatorGroup = new THREE.Group();
+        
+        const indicatorDotL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 16), indicatorMat);
+        const indicatorDotR = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 16), indicatorMat);
+        
+        const indicatorLightL = new THREE.PointLight(0xff0000, 0.6, 1.5);
+        const indicatorLightR = new THREE.PointLight(0xff0000, 0.6, 1.5);
+        
+        indicatorDotL.add(indicatorLightL);
+        indicatorDotR.add(indicatorLightR);
+        
+        indicatorGroup.add(indicatorDotL);
+        indicatorGroup.add(indicatorDotR);
+        chrGroup.add(indicatorGroup);
 
-      let geneId = null;
-      chrInfo.genes.forEach(g => { if(i >= g.startIdx && i <= g.endIdx) geneId = g.id; });
+        camera.add(chrGroup); // ผูกติดหน้ากล้อง
+        
+        // กำหนดมุมเริ่มต้น
+        const baseChrRotY = Math.PI / 4;
+        const baseChrRotZ = Math.PI / 12;
+        chrGroup.rotation.y = baseChrRotY; 
+        chrGroup.rotation.z = baseChrRotZ;
 
-      // Base nodes
-      const sGeo = new THREE.SphereGeometry(0.4, 16, 16);
-      const b1 = new THREE.Mesh(sGeo, i%2===0 ? mR : mG);
-      b1.position.copy(p1).lerp(mid, 0.45);
-      threeHelixGroup.add(b1);
-      
-      const b2 = new THREE.Mesh(sGeo, i%2===0 ? mY : mB);
-      b2.position.copy(p2).lerp(mid, 0.45);
-      threeHelixGroup.add(b2);
-
-      // Hydrogen bond connection
-      const dist = b1.position.distanceTo(b2.position);
-      const link = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, dist, 8), mConn);
-      link.position.copy(b1.position).add(b2.position).multiplyScalar(0.5);
-      link.lookAt(b2.position);
-      link.rotateX(Math.PI/2);
-      threeHelixGroup.add(link);
-
-      // Sugar-Phosphate Backbone Ribbon visual approximation
-      const backBoneGeo = new THREE.SphereGeometry(0.25, 8, 8);
-      const bbMat = new THREE.MeshPhongMaterial({ color: 0x475569 });
-      const bb1 = new THREE.Mesh(backBoneGeo, bbMat);
-      bb1.position.copy(p1);
-      const bb2 = new THREE.Mesh(backBoneGeo, bbMat);
-      bb2.position.copy(p2);
-      threeHelixGroup.add(bb1);
-      threeHelixGroup.add(bb2);
-
-      basePairMeshes.push({ geneId, m1: b1, m2: b2, link, bb1, bb2 });
-    }
-
-    chrInfo.genes.forEach(g => {
-      const steps = stepPositions.filter(s => s.index >= g.startIdx && s.index <= g.endIdx);
-      if (steps.length > 0) {
-        const cyH = (steps[steps.length-1].y - steps[0].y) + 1.2;
-        const cyY = (steps[steps.length-1].y + steps[0].y) / 2;
-        const cyM = new THREE.MeshPhysicalMaterial({ 
-          color: g.color, 
-          transparent: true, 
-          opacity: 0.25, 
-          side: THREE.DoubleSide, 
-          depthWrite: false,
-          roughness: 0.1,
-          transmission: 0.8
+        // ให้โครโมโซมหมุนตามเมาส์ (Interactive Mouse Tracking)
+        window.addEventListener('mousemove', (e) => {
+            const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            chrGroup.rotation.y = baseChrRotY + (mouseX * 0.8);
+            chrGroup.rotation.x = (mouseY * 0.8);
         });
-        const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius*1.5, radius*1.5, cyH, 32, 1, true), cyM);
-        mesh.position.set(0, cyY, 0);
-        threeHelixGroup.add(mesh);
-        geneCylinderMeshes.push({ geneId: g.id, mesh, yTarget: cyY });
-      }
-    });
 
-    threeHelixGroup.rotation.z = 0.15;
-    
-    if(!threeAnimId) animate3DHelix();
-  }
+        function updateChromosomePosition() {
+            const dist = 10;
+            const vFov = (camera.fov * Math.PI) / 180;
+            const height = 2 * Math.tan(vFov / 2) * dist;
+            const width = height * camera.aspect;
+            // ย้ายโครโมโซมไปเกาะมุมซ้ายบน (Top-Left) โดยเว้นระยะไม่ให้ชนเมนู Header
+            chrGroup.position.set(-width / 2 + 1.8, height / 2 - 2.8, -dist);
+            chrGroup.scale.set(0.6, 0.6, 0.6);
+        }
+        updateChromosomePosition();
+        // ----------------------------------------------------
 
-  function animate3DHelix() {
-    threeAnimId = requestAnimationFrame(animate3DHelix);
-    if (threeHelixGroup && !activeGeneHighlight) {
-      threeHelixGroup.rotation.y += 0.005; // Default slow rotation
-      // Auto center Y smoothly if not interacting
-      threeHelixGroup.position.y += (0 - threeHelixGroup.position.y) * 0.05;
-    }
-    threeRenderer.render(threeScene, threeCamera);
-  }
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  window.highlightGene = function(geneId) {
-    activeGeneHighlight = geneId;
-    const tooltip = document.getElementById('dna3dTooltip');
-    
-    // Animate target focus
-    if (geneId && threeHelixGroup) {
-      const geneObj = geneCylinderMeshes.find(x => x.geneId === geneId);
-      if (geneObj) {
-        // Move helix so the gene is centered
-        threeHelixGroup.position.y = -geneObj.yTarget; 
-      }
-    } else if (threeHelixGroup) {
-      threeHelixGroup.position.y = 0;
-    }
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.0;
+        
+        // Disable OrbitControls default zoom so we can use the mouse wheel exclusively for vertical scrolling
+        controls.enableZoom = false; 
+        controls.enablePan = false; 
 
-    geneCylinderMeshes.forEach(item => {
-      item.mesh.material.opacity = (geneId && item.geneId === geneId) ? 0.7 : (geneId ? 0.05 : 0.25);
-    });
+        // Lighting for Light Mode
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // ลดแสงรอบทิศทางลงเพื่อสร้างมิติเงา
+        scene.add(ambientLight);
 
-    basePairMeshes.forEach(bp => {
-      const isTarget = !geneId || bp.geneId === geneId;
-      const targetScale = isTarget ? 1.0 : 0.3;
-      
-      // Simple scalar transition
-      bp.m1.scale.setScalar(targetScale);
-      bp.m2.scale.setScalar(targetScale);
-      bp.link.scale.setScalar(targetScale);
-      bp.bb1.scale.setScalar(targetScale);
-      bp.bb2.scale.setScalar(targetScale);
-      
-      if(isTarget) {
-        bp.m1.material.opacity = 1; bp.m2.material.opacity = 1;
-      } else {
-        bp.m1.material.transparent = true; bp.m1.material.opacity = 0.2;
-        bp.m2.material.transparent = true; bp.m2.material.opacity = 0.2;
-      }
-    });
+        const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2); // เพิ่มแสงตกกระทบหลักให้วัตถุสว่างพุ่งออกมา
+        dirLight1.position.set(20, 20, 20);
+        scene.add(dirLight1);
 
-    if (geneId) {
-      const g = chromosomeData.genes.find(x => x.id === geneId);
-      tooltip.innerHTML = `🧬 ไฮไลต์ยีน: <span style="color:#${g.color.toString(16)}">${g.name}</span><br><span class="text-xs text-slate-400 font-normal">หน้าที่: ${g.func}</span>`;
-      tooltip.classList.remove('opacity-0', 'translate-y-2');
-    } else {
-      tooltip.classList.add('opacity-0', 'translate-y-2');
-    }
-  };
+        const rimLight = new THREE.DirectionalLight(0x2563eb, 0.8); // แสงรองสีฟ้าเข้มเพื่อขับขอบวัตถุ
+        rimLight.position.set(-20, 0, -20);
+        scene.add(rimLight);
 
-  window.openDNAPanel = function(chrInfo) {
-    const panel = document.getElementById('dnaZoomPanel');
-    panel.classList.remove('hidden');
-    
-    // Sequence animations
-    setTimeout(() => {
-      panel.classList.remove('opacity-0', 'translate-y-8');
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      init3DNucleosome();
-      init3DHelix(chrInfo);
-    }, 50);
+        // Adjust materials for daytime visibility - สีต้องสด, เข้ม และมีความมันวาวแบบพรีเมียม
+        const backboneMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x1e293b, // เปลี่ยนแกนสันหลังเป็นเทาเข้มเกือบดำ (Dark Slate) ตัดกับพื้นขาวชัดเจน
+            emissive: 0x000000,
+            metalness: 0.6, // เพิ่มความเงาแบบโลหะ
+            roughness: 0.15,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
 
-    // Build Dynamic UI
-    let btnHtml = `<button onclick="highlightGene(null)" class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold transition-all shadow-md active:scale-95">ดูทั้งหมด</button>`;
-    let listHtml = '';
-    
-    chrInfo.genes.forEach(g => {
-      const colHex = '#' + g.color.toString(16).padStart(6,'0');
-      btnHtml += `<button onclick="highlightGene('${g.id}')" class="px-4 py-2 rounded-xl text-white font-semibold transition-all shadow-md active:scale-95 border border-white/20 hover:brightness-110" style="background-color: ${colHex}">${g.name.split(' ')[0]}</button>`;
-      
-      listHtml += `
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer transform hover:-translate-y-1" onclick="highlightGene('${g.id}')">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="w-4 h-4 rounded-full shadow-inner" style="background-color: ${colHex}"></span>
-            <span class="font-extrabold text-slate-800 text-base">${g.name}</span>
-          </div>
-          <p class="text-sm text-slate-600 mb-3 font-medium">${g.func}</p>
-          <div class="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200">
-            <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Codon:</span>
-            <span class="font-mono text-xs font-bold text-indigo-600 tracking-wider">${g.code}</span>
-          </div>
-        </div>`;
-    });
-    
-    document.getElementById('geneSelectorBtns').innerHTML = btnHtml;
-    document.getElementById('geneLocusList').innerHTML = listHtml;
-  };
+        // Base colors - ใช้สีเข้ม (Deep Saturated) ลดแสงฟุ้ง ให้เนื้อสีแน่นและตัดกับฉาก
+        const matA = new THREE.MeshPhysicalMaterial({ color: 0xe11d48, emissive: 0xe11d48, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // แดงเข้ม
+        const matT = new THREE.MeshPhysicalMaterial({ color: 0x1d4ed8, emissive: 0x1d4ed8, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // น้ำเงินเข้ม
+        const matC = new THREE.MeshPhysicalMaterial({ color: 0x047857, emissive: 0x047857, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // เขียวเข้ม
+        const matG = new THREE.MeshPhysicalMaterial({ color: 0xc2410c, emissive: 0xc2410c, emissiveIntensity: 0.1, metalness: 0.2, roughness: 0.15, clearcoat: 1.0 }); // ส้มเข้ม
+        
+        const matMutated = new THREE.MeshPhysicalMaterial({ 
+            color: 0xff0000, 
+            emissive: 0xff0000, 
+            emissiveIntensity: 1.5, 
+            roughness: 0.1,
+            clearcoat: 1.0
+        });
 
-  window.closeDNAPanel = function() {
-    const panel = document.getElementById('dnaZoomPanel');
-    panel.classList.add('opacity-0', 'translate-y-8');
-    setTimeout(() => {
-      panel.classList.add('hidden');
-      if (packAnimId) cancelAnimationFrame(packAnimId);
-      if (threeAnimId) cancelAnimationFrame(threeAnimId);
-      annotationData.forEach(a => a.labelEl.classList.remove('visible'));
-      
-      // Cleanup to save memory
-      packScene = null;
-      window.highlightGene(null);
-    }, 500);
-    
-    // Scroll back to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+        const atomGeo = new THREE.SphereGeometry(0.55, 16, 16);
+        const baseAtomGeo = new THREE.SphereGeometry(0.45, 16, 16);
+        let dnaGroup = new THREE.Group();
+        scene.add(dnaGroup);
 
-  // Bootstrap Application
-  document.addEventListener('DOMContentLoaded', () => {
-    initChromosome3D();
-  });
+        let blinkLights = [];
+        let blinkMaterials = [];
 
-})();
-</script>
+        function buildDNA(sequence, mutationIdx, data = null) {
+            while(dnaGroup.children.length > 0){ dnaGroup.remove(dnaGroup.children[0]); }
+            blinkLights = []; blinkMaterials = [];
+
+            // อัปเดตตำแหน่งจุดบนโครโมโซม HUD
+            if (data && data.mutationIdx > -1) {
+                indicatorGroup.visible = true;
+                
+                // คำนวณพิกัดแกน X และ Y ให้จุด "ฝังอยู่ตรงกลาง" แขนโครโมโซมที่กางออก (Sister Chromatids)
+                let targetY = 0;
+                let targetX = 0;
+                let ratio = Math.abs(data.chrPos); // อัตราส่วนความลึก (0.0 ถึง 1.0)
+
+                if (data.chrPos > 0) {
+                    // p-arm (แขนสั้นด้านบน) แนวทะแยงจากศูนย์กลาง (0,0) ไปจนถึงปลายแคปที่ (0.35, 1.2)
+                    targetY = ratio * 1.2;
+                    targetX = ratio * 0.35;
+                } else {
+                    // q-arm (แขนยาวด้านล่าง) แนวทะแยงจากศูนย์กลาง (0,0) ไปจนถึงปลายแคปที่ (0.45, -1.8)
+                    targetY = -ratio * 1.8;
+                    targetX = ratio * 0.45;
+                }
+                
+                indicatorDotL.position.set(-targetX, targetY, 0); // ฝังลงตรงกลางแขนซ้าย
+                indicatorDotR.position.set(targetX, targetY, 0);  // ฝังลงตรงกลางแขนขวา
+                
+                blinkMaterials.push(indicatorMat);
+                blinkLights.push(indicatorLightL);
+                blinkLights.push(indicatorLightR);
+            } else {
+                indicatorGroup.visible = false;
+            }
+
+            const numPairs = sequence.length;
+            const radius = 4.2;
+            const verticalSpacing = 1.3; 
+            const twistRate = 0.598; 
+            const minorGrooveAngle = 2.4; 
+            
+            const strand1Points = [];
+            const strand2Points = [];
+            const startY = -(numPairs * verticalSpacing) / 2;
+
+            for (let i = 0; i < numPairs; i++) {
+                const angle = i * twistRate;
+                const y = startY + (i * verticalSpacing);
+
+                const p1 = new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+                const p2 = new THREE.Vector3(Math.cos(angle + minorGrooveAngle) * radius, y, Math.sin(angle + minorGrooveAngle) * radius);
+                const center = new THREE.Vector3(0, y, 0);
+
+                strand1Points.push(p1); strand2Points.push(p2);
+
+                const bbAtom1 = new THREE.Mesh(atomGeo, backboneMaterial); bbAtom1.position.copy(p1);
+                const bbAtom2 = new THREE.Mesh(atomGeo, backboneMaterial); bbAtom2.position.copy(p2);
+                dnaGroup.add(bbAtom1); dnaGroup.add(bbAtom2);
+
+                const baseChar = sequence[i];
+                let m1, m2;
+                if (baseChar === 'A') { m1 = matA; m2 = matT; }
+                else if (baseChar === 'T') { m1 = matT; m2 = matA; }
+                else if (baseChar === 'C') { m1 = matC; m2 = matG; }
+                else if (baseChar === 'G') { m1 = matG; m2 = matC; }
+
+                const isMutation = (i === mutationIdx);
+                if (isMutation) {
+                    m1 = matMutated.clone(); 
+                    const mutLight = new THREE.PointLight(0xff0000, 2, 20); // Softer light for bright bg
+                    mutLight.position.copy(center);
+                    dnaGroup.add(mutLight);
+                    blinkLights.push(mutLight);
+                    blinkMaterials.push(m1);
+                    
+                    dnaGroup.userData.mutCenter = center.clone();
+
+                    // สร้างกล่องทรงกระบอก (HUD Bounding Box) ปลายเปิด ครอบจุดที่ผิดปกติ
+                    const cylinderGeo = new THREE.CylinderGeometry(5.8, 5.8, 3.8, 32, 1, true); // รัศมี 5.8 กว้างพอคลุมเกลียว DNA (รัศมี 4.2)
+                    const cylinderMat = new THREE.MeshPhysicalMaterial({
+                        color: 0xff0000,
+                        emissive: 0xff0000,
+                        emissiveIntensity: 0.5,
+                        transparent: true,
+                        opacity: 0.15, // โปร่งแสงให้เห็น DNA ข้างใน
+                        side: THREE.DoubleSide,
+                        depthWrite: false // ป้องกันบั๊กการเรนเดอร์ทับซ้อนของวัตถุโปร่งแสง
+                    });
+                    const mutBox = new THREE.Mesh(cylinderGeo, cylinderMat);
+                    mutBox.position.copy(center);
+                    
+                    // เพิ่มเส้นขอบโครงข่าย (Edges) ให้ดูเหมือนกรอบสแกนเนอร์โฮโลแกรม
+                    const edgesGeo = new THREE.EdgesGeometry(cylinderGeo);
+                    const edgesMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
+                    const mutBoxEdges = new THREE.LineSegments(edgesGeo, edgesMat);
+                    mutBox.add(mutBoxEdges);
+
+                    dnaGroup.add(mutBox);
+                    blinkMaterials.push(cylinderMat); // ส่งให้ระบบช่วยกระพริบแสงไปพร้อมกับจังหวะเตือน
+                }
+
+                const path1 = new THREE.LineCurve3(p1, center);
+                const path2 = new THREE.LineCurve3(p2, center);
+                const rung1 = new THREE.Mesh(new THREE.TubeGeometry(path1, 2, isMutation ? 0.35 : 0.2, 8, false), m1);
+                const rung2 = new THREE.Mesh(new THREE.TubeGeometry(path2, 2, 0.2, 8, false), m2);
+                
+                const bAtom1 = new THREE.Mesh(baseAtomGeo, m1);
+                bAtom1.position.copy(p1).lerp(center, 0.4);
+                if(isMutation) bAtom1.scale.set(1.4, 1.4, 1.4); 
+
+                const bAtom2 = new THREE.Mesh(baseAtomGeo, m2);
+                bAtom2.position.copy(p2).lerp(center, 0.4);
+
+                dnaGroup.add(rung1); dnaGroup.add(rung2);
+                dnaGroup.add(bAtom1); dnaGroup.add(bAtom2);
+            }
+
+            const strand1Curve = new THREE.CatmullRomCurve3(strand1Points);
+            const strand2Curve = new THREE.CatmullRomCurve3(strand2Points);
+            dnaGroup.add(new THREE.Mesh(new THREE.TubeGeometry(strand1Curve, numPairs * 2, 0.35, 12, false), backboneMaterial));
+            dnaGroup.add(new THREE.Mesh(new THREE.TubeGeometry(strand2Curve, numPairs * 2, 0.35, 12, false), backboneMaterial));
+            
+            dnaGroup.rotation.z = Math.PI / 10;
+            dnaGroup.rotation.x = Math.PI / 16;
+            
+            dnaGroup.updateMatrixWorld();
+            
+            if(mutationIdx > -1 && dnaGroup.userData.mutCenter) {
+                const worldPos = dnaGroup.userData.mutCenter.clone().applyMatrix4(dnaGroup.matrixWorld);
+                controls.target.copy(worldPos); 
+                camera.position.set(worldPos.x, worldPos.y, worldPos.z + 45);
+            } else {
+                controls.target.set(0, 0, 0);
+                camera.position.set(0, 0, 45);
+            }
+        }
+
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 800; // More particles for cinematic feel
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 150;
+        }
+        
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.25, // ขยายขนาดฝุ่นละอองนิดหน่อย
+            color: 0x1d4ed8, // เปลี่ยนละอองพาร์ติเคิลเป็นสีน้ำเงินเข้ม
+            transparent: true,
+            opacity: 0.6, // เพิ่มความทึบให้มองเห็นบนพื้นขาว
+            blending: THREE.NormalBlending
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particlesMesh);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateChromosomePosition(); // ขยับ HUD โครโมโซมให้เกาะมุมจอเวลาพลิกมือถือ
+        }, false);
+
+        document.getElementById('sample-selector').addEventListener('change', (e) => {
+            updateUI(e.target.value);
+        });
+
+        let isPanelVisible = true;
+        const dataPanel = document.getElementById('data-panel');
+        const btnDesktop = document.getElementById('btn-toggle-desktop');
+        const btnMobile = document.getElementById('btn-toggle-mobile');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleIcon = document.getElementById('toggle-icon');
+
+        function togglePanel() {
+            isPanelVisible = !isPanelVisible;
+            if (isPanelVisible) {
+                // Show Panel
+                dataPanel.style.display = 'block';
+                setTimeout(() => {
+                    dataPanel.style.opacity = '1';
+                    dataPanel.style.transform = 'translateY(0) scaleY(1)';
+                }, 10);
+                
+                // Update Desktop Button
+                toggleText.innerText = 'ซ่อนข้อมูล';
+                toggleIcon.className = 'fa-solid fa-eye-slash';
+                btnDesktop.classList.replace('from-slate-500', 'from-blue-600');
+                btnDesktop.classList.replace('to-slate-600', 'to-blue-500');
+                
+                // Update Mobile Button
+                btnMobile.innerHTML = '<i class="fa-solid fa-eye-slash"></i> ซ่อน';
+                btnMobile.classList.replace('bg-slate-100', 'bg-blue-50');
+                btnMobile.classList.replace('text-slate-600', 'text-blue-700');
+            } else {
+                // Hide Panel
+                dataPanel.style.opacity = '0';
+                dataPanel.style.transform = 'translateY(-10px) scaleY(0.95)';
+                setTimeout(() => {
+                    dataPanel.style.display = 'none';
+                }, 300); // Matches transition duration
+                
+                // Update Desktop Button
+                toggleText.innerText = 'ดูข้อมูล';
+                toggleIcon.className = 'fa-solid fa-eye';
+                btnDesktop.classList.replace('from-blue-600', 'from-slate-500');
+                btnDesktop.classList.replace('to-blue-500', 'to-slate-600');
+                
+                // Update Mobile Button
+                btnMobile.innerHTML = '<i class="fa-solid fa-eye"></i> ดูข้อมูล';
+                btnMobile.classList.replace('bg-blue-50', 'bg-slate-100');
+                btnMobile.classList.replace('text-blue-700', 'text-slate-600');
+            }
+        }
+
+        btnDesktop.addEventListener('click', togglePanel);
+        btnMobile.addEventListener('click', togglePanel);
+
+        // --------------------------------------------------------
+        // NEW INTUITIVE SCROLLING LOGIC (BOUND TO CANVAS ONLY)
+        // --------------------------------------------------------
+        
+        // Mouse Wheel (Desktop) - Bound to canvas to avoid UI interference
+        canvas.addEventListener('wheel', (event) => {
+            const scrollSpeed = 0.05;
+            controls.target.y -= event.deltaY * scrollSpeed;
+            camera.position.y -= event.deltaY * scrollSpeed;
+        }, { passive: true });
+
+        // Touch Swipe (Mobile / iPad) - Bound to canvas
+        let touchStartY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if(e.touches.length === 1) { 
+                const touchY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchY;
+                const swipeSpeed = 0.08;
+                
+                controls.target.y -= deltaY * swipeSpeed;
+                camera.position.y -= deltaY * swipeSpeed;
+                
+                touchStartY = touchY; 
+            }
+        }, { passive: true });
+
+        // --------------------------------------------------------
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            particlesMesh.rotation.y = elapsedTime * 0.01;
+            particlesMesh.rotation.x = elapsedTime * 0.005;
+            
+            dnaGroup.position.y = Math.sin(elapsedTime * 0.5) * 0.8;
+
+            const pulse = (Math.sin(elapsedTime * 10) + 1) / 2; 
+            blinkLights.forEach(light => { light.intensity = 1 + (pulse * 8); }); // Stronger pulse for dark mode
+            blinkMaterials.forEach(mat => { mat.emissiveIntensity = 1 + (pulse * 5); });
+
+            const maxY = 150;
+            if (controls.target.y > maxY) {
+                const diff = controls.target.y - maxY;
+                controls.target.y = maxY;
+                camera.position.y -= diff;
+            } else if (controls.target.y < -maxY) {
+                const diff = controls.target.y - (-maxY);
+                controls.target.y = -maxY;
+                camera.position.y -= diff;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        setTimeout(() => {
+            const hint = document.getElementById('nav-hint');
+            if (hint) hint.style.opacity = '0';
+        }, 7000);
+
+        updateUI('hbb_normal');
+        animate();
+    </script>
 </body>
 </html>
